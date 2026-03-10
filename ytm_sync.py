@@ -63,95 +63,93 @@ HIDDEN_KEYWORDS = ["education", "news", "politics", "science", "technology", "mo
 # For now, we'll shift to full discovery.
 VERIFIED_MUSIC_PLAYLISTS = [] 
 
+def get_playlist_id(url):
+    match = re.search(r'list=([a-zA-Z0-9_-]+)', url)
+    return match.group(1) if match else url
+
 def get_item_category(item):
     """Categorization check - greatly simplified for direct library discovery."""
     return item, "Music" # We trust our direct library scans
 
 def get_library_items():
-    print("Discovering library items (playlists and albums)...")
-    
-    # We use the full library state as a base to avoid 'allat work' of manual URLs
-    # This list was discovered via browser scraping for 100% accuracy
-    # NOTE: Some browse/MPRE URLs fail to resolve in yt-dlp, so we use direct list IDs where verified.
-    PRE_DISCOVERED_ALBUMS = [
-        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nnY0s7ogC6wEI85M_C9NrMLLv6lWOQxqY"},
-        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nhQ2EVQRbH-uWJbaesYXRQGZMzinN0qqg"},
-        {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/playlist?list=OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0"},
-        {"title": "Drukqs", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nG46LZ_uffzpRmfuooj3L0LGSJOMBOVQo"},
-        {"title": "Syro", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lYw1W8SsabxulshCqGJFlY71VGXedyooc"},
-        {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_klZxReMOuU562U-e9KldU3DDQsIhnMDxc"},
-        {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mPd3bgeYqn1kYq4WcMkK81W_Ah0aEQypE"},
-        {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m6f3H_Be9d-wgEZ8iexYbTl0Sk_koDAJY"},
-        {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lZkvKIZyR18ZHUPdUaiF1pmKRHjr6sovk"},
-        {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mbBdg2HkSefEsH2riHFIvBWaMrux0F64A"},
-        {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kWMjW9nvHXHjIXgBPfQz3vP4E5jpFuaow"},
-        {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lLkMYaC8VvsHDlzqKR1nX-ccJVKBdroWI"},
-        {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ljXkQlhVlWyV7BxSxMMzgOLbzYS_-JPt4"},
-        {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kidGzGmzCUSJK1LAtIh7ngZwRF9MT3qjE"},
-        {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_k-fz2U2mTfcN9R63A7DyL6V_BDUOLpyiE"},
-        {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m-rr6K-H8nfmI3MdSzCRpQw0gxDeG5jzk"},
-        {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lOxSWAQX3iFOW6dH_aU_FlFqxFQV42g84"},
-        {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mVMiJRxAH5HCtpSQel-RkiN3AgeYzlo9Y"},
-        {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_krzWyMq_JgKyrDh-zjM7ry9oyusXyk0EY"},
-        {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ngNQsDqZlbbp5a-BZ6BhQF9VzwY1xDHIQ"},
-        {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lx3LhwbhstxzQcZIXqDBr7sNOjz5ZKr7A"},
-        {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
-        {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"}
-    ]
+    with console.status("[bold green]Discovering library items (playlists and albums)...", spinner="dots"):
+        # We use the full library state as a base to avoid 'allat work' of manual URLs
+        # This list was discovered via browser scraping for 100% accuracy
+        PRE_DISCOVERED_ALBUMS = [
+            {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nnY0s7ogC6wEI85M_C9NrMLLv6lWOQxqY"},
+            {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nhQ2EVQRbH-uWJbaesYXRQGZMzinN0qqg"},
+            {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/playlist?list=OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0"},
+            {"title": "Drukqs", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nG46LZ_uffzpRmfuooj3L0LGSJOMBOVQo"},
+            {"title": "Syro", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lYw1W8SsabxulshCqGJFlY71VGXedyooc"},
+            {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_klZxReMOuU562U-e9KldU3DDQsIhnMDxc"},
+            {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mPd3bgeYqn1kYq4WcMkK81W_Ah0aEQypE"},
+            {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m6f3H_Be9d-wgEZ8iexYbTl0Sk_koDAJY"},
+            {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lZkvKIZyR18ZHUPdUaiF1pmKRHjr6sovk"},
+            {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mbBdg2HkSefEsH2riHFIvBWaMrux0F64A"},
+            {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kWMjW9nvHXHjIXgBPfQz3vP4E5jpFuaow"},
+            {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lLkMYaC8VvsHDlzqKR1nX-ccJVKBdroWI"},
+            {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ljXkQlhVlWyV7BxSxMMzgOLbzYS_-JPt4"},
+            {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kidGzGmzCUSJK1LAtIh7ngZwRF9MT3qjE"},
+            {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_k-fz2U2mTfcN9R63A7DyL6V_BDUOLpyiE"},
+            {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m-rr6K-H8nfmI3MdSzCRpQw0gxDeG5jzk"},
+            {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lOxSWAQX3iFOW6dH_aU_FlFqxFQV42g84"},
+            {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mVMiJRxAH5HCtpSQel-RkiN3AgeYzlo9Y"},
+            {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_krzWyMq_JgKyrDh-zjM7ry9oyusXyk0EY"},
+            {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ngNQsDqZlbbp5a-BZ6BhQF9VzwY1xDHIQ"},
+            {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lx3LhwbhstxzQcZIXqDBr7sNOjz5ZKr7A"},
+            {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
+            {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"}
+        ]
 
-    def get_playlist_id(url):
-        match = re.search(r'list=([a-zA-Z0-9_-]+)', url)
-        return match.group(1) if match else url
+        # Discovery feeds for playlists (we use multiple to ensure we catch everything)
+        targets = [
+            "https://www.youtube.com/feed/playlists?view=1", # Created/Saved
+            "https://www.youtube.com/feed/playlists",        # All
+            "https://www.youtube.com/feed/library"           # Library
+        ]
+        
+        categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS), "hidden": []}
+        processed_ids = {get_playlist_id(album["url"]) for album in PRE_DISCOVERED_ALBUMS}
+        hidden_pids = get_hidden_ids()
 
-    # Discovery feeds for playlists (we use multiple to ensure we catch everything)
-    targets = [
-        "https://www.youtube.com/feed/playlists?view=1", # Created/Saved
-        "https://www.youtube.com/feed/playlists",        # All
-        "https://www.youtube.com/feed/library"           # Library
-    ]
-    
-    categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS), "hidden": []}
-    processed_ids = {get_playlist_id(album["url"]) for album in PRE_DISCOVERED_ALBUMS}
-    hidden_pids = get_hidden_ids()
+        for target_url in targets:
+            cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--flat-playlist", "--dump-json", target_url]
+            try:
+                cmd += ["--extractor-args", "youtubetab:skip=authcheck"]
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                for line in res.stdout.splitlines():
+                    try:
+                        data = json.loads(line)
+                        title, url = data.get("title"), data.get("url")
+                        if not url: continue
+                        
+                        pid = get_playlist_id(url)
+                        if pid in processed_ids: continue
+                        
+                        # Basic filters for "clean" discovery (System/Private collections)
+                        lower_title = title.lower() if title else ""
+                        if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
+                            continue
 
-    for target_url in targets:
-        cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--flat-playlist", "--dump-json", target_url]
-        try:
-            cmd += ["--extractor-args", "youtubetab:skip=authcheck"]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            for line in res.stdout.splitlines():
-                try:
-                    data = json.loads(line)
-                    title, url = data.get("title"), data.get("url")
-                    if not url: continue
-                    
-                    pid = get_playlist_id(url)
-                    if pid in processed_ids: continue
-                    
-                    # Basic filters for "clean" discovery (System/Private collections)
-                    lower_title = title.lower() if title else ""
-                    if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
-                        continue
+                        # Categorization: Priority to manual hide list, then keywords
+                        if pid in hidden_pids or any(kw in lower_title for kw in HIDDEN_KEYWORDS):
+                            categorized["hidden"].append({"title": title, "url": url})
+                        else:
+                            categorized["playlists"].append({"title": title, "url": url})
+                        
+                        processed_ids.add(pid)
+                    except: pass
+            except: pass
 
-                    # Categorization: Priority to manual hide list, then keywords
-                    if pid in hidden_pids or any(kw in lower_title for kw in HIDDEN_KEYWORDS):
-                        categorized["hidden"].append({"title": title, "url": url})
-                    else:
-                        categorized["playlists"].append({"title": title, "url": url})
-                    
-                    processed_ids.add(pid)
-                except: pass
-        except: pass
+        # Always include Liked Music
+        if "LM" not in processed_ids:
+            categorized["playlists"].insert(0, {"title": "Liked music", "url": "https://music.youtube.com/playlist?list=LM"})
 
-    # Always include Liked Music
-    if "LM" not in processed_ids:
-        categorized["playlists"].insert(0, {"title": "Liked music", "url": "https://music.youtube.com/playlist?list=LM"})
-
-    for key in categorized:
-        unique = {item["url"]: item for item in categorized[key]}
-        categorized[key] = sorted(list(unique.values()), key=lambda x: x["title"].lower() if x["title"] else "")
-    
-    print(f"Discovery complete. {len(categorized['playlists'])} music playlists, {len(categorized['albums'])} albums, and {len(categorized['hidden'])} hidden items.")
+        for key in categorized:
+            unique = {item["url"]: item for item in categorized[key]}
+            categorized[key] = sorted(list(unique.values()), key=lambda x: x["title"].lower() if x["title"] else "")
+        
+        console.print(f"[bold green]✓[/bold green] Discovery complete. {len(categorized['playlists'])} music playlists, {len(categorized['albums'])} albums, and {len(categorized['hidden'])} hidden items.")
     
     # Persistent cache so it doesn't reset on restart
     try:
@@ -277,75 +275,69 @@ Options:
   -s SELECT Sync specific items by index (comma-separated, e.g., -s 1,3,5)
 """)
 
+from prompt_toolkit.key_binding import KeyBindings
+
 def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_key="playlists"):
     items = cached_playlists
     if items is None:
         items = get_library_items()[fallback_key]
     
+    mode = "sync" # "sync" or "hide"
+    
     while True:
-        choices = [f"{i}. {item['title'] or '[Private Item]'}" for i, item in enumerate(items, 1)]
-        main_choice = questionary.select(
-            f"--- {menu_title} ---",
-            choices=[
-                "Sync Selected Items",
-                "Sync ALL",
-                "Hide/Unhide Items",
-                "Re-Scan Library",
-                "Back to Main Menu"
-            ]
+        # Define styles based on mode
+        style_name = "green" if mode == "sync" else "red"
+        custom_style = questionary.Style([
+            ('selected', f'fg:{style_name} bold'),
+            ('pointer', f'fg:{style_name} bold'),
+            ('highlighted', f'fg:{style_name}'),
+            ('answer', f'fg:{style_name} bold'),
+        ])
+
+        hidden_ids = get_hidden_ids()
+        choices = []
+        
+        # Add special controls at the top
+        choices.append(questionary.Choice(f"--- [ MODE: {mode.upper()} | Click to switch to {'HIDE' if mode == 'sync' else 'SYNC'} ] ---", value="TOGGLE_MODE"))
+        choices.append(questionary.Choice("--- [ RE-SCAN LIBRARY ] ---", value="RE_SCAN"))
+        choices.append(questionary.Choice("--- [ BACK TO MAIN MENU ] ---", value="BACK"))
+        choices.append(questionary.Separator())
+
+        for i, item in enumerate(items, 1):
+            pid = get_playlist_id(item["url"])
+            choices.append(questionary.Choice(f"{item['title'] or '[Private Item]'}", value=i-1))
+
+        main_choice = questionary.checkbox(
+            f"--- {menu_title} (Press H for HIDE, S for SYNC) ---",
+            choices=choices,
+            style=custom_style
         ).ask()
 
-        if main_choice == "Back to Main Menu" or main_choice is None: return items
-        if main_choice == "Re-Scan Library":
-            data = get_library_items()
-            items = data[fallback_key]
+        if main_choice is None: return items
+        if "BACK" in main_choice: return items
+        if "RE_SCAN" in main_choice:
+            items = get_library_items()[fallback_key]
+            continue
+        if "TOGGLE_MODE" in main_choice:
+            mode = "hide" if mode == "sync" else "sync"
             continue
         
-        if main_choice == "Sync ALL":
-            selected_items = items
-        elif main_choice == "Sync Selected Items":
-            selected_names = questionary.checkbox(
-                "Select playlists to sync (Space to toggle, Enter to confirm):",
-                choices=choices
-            ).ask()
-            if not selected_names: continue
-            selected_indices = [int(name.split(".")[0]) - 1 for name in selected_names]
-            selected_items = [items[idx] for idx in selected_indices]
-        elif main_choice == "Hide/Unhide Items":
-            # Show all items and their current status
-            hidden_ids = get_hidden_ids()
-            checkbox_choices = []
-            for i, item in enumerate(items, 1):
-                pid = get_playlist_id(item["url"])
-                is_hidden = pid in hidden_ids
-                checkbox_choices.append(questionary.Choice(f"{i}. {item['title']}", checked=is_hidden))
-            
-            selected_for_hiding = questionary.checkbox(
-                "Check items to HIDE, uncheck to UNHIDE:",
-                choices=checkbox_choices
-            ).ask()
-            
-            if selected_for_hiding is not None:
-                new_hidden_ids = set()
-                # Maintain existing hidden IDs that aren't in the current view
-                # (Simple approach: just update from the current selection)
-                current_pids = {get_playlist_id(item["url"]) for item in items}
-                # Keep hidden items that are NOT in the current menu
-                new_hidden_ids = {pid for pid in hidden_ids if pid not in current_pids}
-                # Add the ones currently checked
-                for name in selected_for_hiding:
-                    idx = int(name.split(".")[0]) - 1
-                    new_hidden_ids.add(get_playlist_id(items[idx]["url"]))
-                
-                save_hidden_ids(new_hidden_ids)
-                print("Update complete. Re-scanning...")
-                data = get_library_items()
-                items = data[fallback_key]
-            continue
+        # Filter out control values to get real indices
+        selected_indices = [v for v in main_choice if isinstance(v, int)]
+        if not selected_indices: continue
 
-        if selected_items:
+        if mode == "sync":
+            selected_items = [items[idx] for idx in selected_indices]
             for i, item in enumerate(selected_items, 1):
                 sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(selected_items))
+        else:
+            new_hidden_ids = get_hidden_ids()
+            for idx in selected_indices:
+                pid = get_playlist_id(items[idx]["url"])
+                if pid in new_hidden_ids: new_hidden_ids.remove(pid)
+                else: new_hidden_ids.add(pid)
+            save_hidden_ids(new_hidden_ids)
+            items = get_library_items()[fallback_key]
     return items
 
 def album_sync_menu(cached_albums=None):
@@ -354,35 +346,20 @@ def album_sync_menu(cached_albums=None):
         items = get_library_items()["albums"]
 
     while True:
-        choices = [f"{i}. {item['title']}" for i, item in enumerate(items, 1)]
-        main_choice = questionary.select(
-            "--- Albums ---",
-            choices=[
-                "Sync Selected Items",
-                "Sync ALL",
-                "Re-Scan Library",
-                "Back to Main Menu"
-            ]
+        choices = [questionary.Choice(item['title'], value=i) for i, item in enumerate(items)]
+        choices.insert(0, questionary.Choice("--- [ BACK TO MAIN MENU ] ---", value="BACK"))
+        
+        selected_indices = questionary.checkbox(
+            "--- Albums (Sync Mode) ---",
+            choices=choices,
+            style=questionary.Style([('selected', 'fg:green bold')])
         ).ask()
 
-        if main_choice == "Back to Main Menu" or main_choice is None: return items
-        if main_choice == "Re-Scan Library":
-            data = get_library_items()
-            items = data["albums"]
-            continue
+        if selected_indices is None or "BACK" in selected_indices: return items
         
-        if main_choice == "Sync ALL":
-            selected_items = items
-        elif main_choice == "Sync Selected Items":
-            selected_names = questionary.checkbox(
-                "Select albums to sync (Space to toggle, Enter to confirm):",
-                choices=choices
-            ).ask()
-            if not selected_names: continue
-            selected_indices = [int(name.split(".")[0]) - 1 for name in selected_names]
-            selected_items = [items[idx] for idx in selected_indices]
-            
-        if selected_items:
+        real_indices = [v for v in selected_indices if isinstance(v, int)]
+        if real_indices:
+            selected_items = [items[idx] for idx in real_indices]
             for i, album in enumerate(selected_items, 1):
                 sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_items))
     return items
