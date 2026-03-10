@@ -4,6 +4,10 @@ import json
 import re
 import concurrent.futures
 import shutil
+import sys
+import yt_dlp
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, DownloadColumn, TransferSpeedColumn, TimeRemainingColumn
+from rich.console import Console
 
 MUSIC_DIR = os.path.expanduser("~/Music")
 # Check for common localized music directories
@@ -136,10 +140,6 @@ def sanitize_filename(name):
 
 ALBUMS = [] # Phasing out hardcoded albums
 
-import yt_dlp
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, DownloadColumn, TransferSpeedColumn, TimeRemainingColumn
-from rich.console import Console
-
 console = Console()
 
 def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, total_items=None):
@@ -264,7 +264,10 @@ def playlist_sync_menu(cached_playlists=None):
         print("[S] Re-Scan Library")
         print("[B] Back to Main Menu")
         
-        choice = input("\nSelect numbers (e.g. 1,3) or 'A', 'S', 'B': ").strip().upper()
+        try:
+            choice = input("\nSelect numbers (e.g. 1,3) or 'A', 'S', 'B': ").strip().upper()
+        except KeyboardInterrupt:
+            return items
         if choice == 'B': return items
         if choice == 'S':
             items = get_library_items()["playlists"]
@@ -298,7 +301,10 @@ def album_sync_menu(cached_albums=None):
         print("[S] Re-Scan Library")
         print("[B] Back to Main Menu")
         
-        choice = input("\nSelect index or 'A', 'S', 'B': ").strip().upper()
+        try:
+            choice = input("\nSelect index or 'A', 'S', 'B': ").strip().upper()
+        except KeyboardInterrupt:
+            return items
         if choice == 'B': return items
         if choice == 'S':
             items = get_library_items()["albums"]
@@ -319,7 +325,6 @@ def album_sync_menu(cached_albums=None):
     return items
 
 if __name__ == "__main__":
-    import sys
     args = sys.argv[1:]
     
     if "-h" in args:
@@ -336,6 +341,9 @@ if __name__ == "__main__":
         try:
             with open(cache_file, "r") as f:
                 cached_data = json.load(f)
+            # SANITY CHECK: If cache contains old redirects, force a refresh
+            if any("/browse/MPRE" in a.get("url", "") for a in (cached_data.get("albums") or [])):
+                cached_data = get_library_items()
         except: cached_data = {"playlists": None, "albums": None}
     else:
         cached_data = {"playlists": None, "albums": None}
@@ -363,7 +371,7 @@ if __name__ == "__main__":
                     url = input("URL: "); name = input("Folder Name: ")
                     if url and name: sync_playlist(name, url)
             except KeyboardInterrupt:
-                print("\nInterrupted. Returning to main menu...")
-                continue
+                print("\nExiting...")
+                sys.exit(0)
     except KeyboardInterrupt:
         print("\nExiting...")
