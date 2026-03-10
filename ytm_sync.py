@@ -221,13 +221,15 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
             # First, extract info to get the count
             try:
                 info = ydl.extract_info(url, download=False)
-                if 'entries' in info:
+                if info and 'entries' in info:
                     entries = list(info['entries'])
                     progress.update(playlist_task, total=len(entries))
                     ydl.download([url])
-                else:
+                elif info:
                     progress.update(playlist_task, total=1)
                     ydl.download([url])
+                else:
+                    console.print(f"[red]Error: Could not retrieve info for {url}[/red]")
             except Exception as e:
                 console.print(f"[red]Error starting sync: {e}[/red]")
 
