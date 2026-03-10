@@ -18,6 +18,7 @@ from rich.progress import (
 )
 from rich.console import Console
 import questionary
+from prompt_toolkit.styles import Style
 
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.application import Application
@@ -25,6 +26,7 @@ from prompt_toolkit.layout import Layout
 from prompt_toolkit.widgets import CheckboxList
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.formatted_text import HTML
 
 MUSIC_DIR = os.path.expanduser("~/Music")
 # Check for common localized music directories
@@ -295,8 +297,9 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         for i, item in enumerate(items):
             pid = get_playlist_id(item["url"])
             is_hidden = pid in hidden_ids
-            status = " (HIDDEN)" if is_hidden else ""
-            choices.append((i, f"{item['title'] or '[Private]'}{status}"))
+            title = item["title"] or "[Private]"
+            label = HTML(f"{title} <ansired>(HIDDEN)</ansired>") if is_hidden else title
+            choices.append((i, label))
 
         # Add control options
         choices.insert(0, ("RE_SCAN", "--- [ RE-SCAN LIBRARY ] ---"))
@@ -328,6 +331,10 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
                     event.app.exit(result=("SYNC_SINGLE", current_val))
             except: pass
 
+        @kb.add('escape')
+        def _(event):
+            event.app.exit(result="BACK")
+
         @kb.add('enter')
         def _(event):
             # Normal behavior: exit with the selected indices
@@ -337,14 +344,22 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         def _(event):
             event.app.exit(result=None)
 
-        # Style the menu
-        desc = f"{menu_title}\n(Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)"
+        # Style the menu with a premium color palette
+        custom_style = Style.from_dict({
+            'checkbox-checked': 'fg:ansigreen bold',
+            'checkbox-selected': 'bg:ansicyan fg:black',
+            'focused': 'bg:ansicyan fg:black',
+            'checkbox': 'fg:ansigray',
+            'description': 'fg:ansicyan bold',
+        })
+
+        desc = f"{menu_title}\n(Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, ESC=Back, Enter=Sync Selected)"
         layout = Layout(HSplit([
-            Window(content=FormattedTextControl(desc), height=2, style="bold cyan"),
+            Window(content=FormattedTextControl(desc), height=2, style="class:description"),
             checkbox_list
         ]))
 
-        app = Application(layout=layout, key_bindings=kb, full_screen=False)
+        app = Application(layout=layout, key_bindings=kb, style=custom_style, full_screen=False)
         main_choice = app.run()
 
         if main_choice is None: return items
@@ -377,20 +392,61 @@ def album_sync_menu(cached_albums=None):
         items = get_library_items()["albums"]
 
     while True:
-        choices = [questionary.Choice(item['title'], value=i) for i, item in enumerate(items)]
-        choices.insert(0, questionary.Choice("--- [ BACK TO MAIN MENU ] ---", value="BACK"))
-        
-        selected_indices = questionary.checkbox(
-            "--- Albums (Sync Mode) ---",
-            choices=choices,
-            style=questionary.Style([('selected', 'fg:green bold')])
-        ).ask()
+        choices = [(i, item['title']) for i, item in enumerate(items)]
+        choices.insert(0, ("BACK", "--- [ BACK TO MAIN MENU ] ---"))
 
-        if selected_indices is None or "BACK" in selected_indices: return items
+        checkbox_list = CheckboxList(choices)
+        kb = KeyBindings()
+
+        @kb.add('s')
+        def _(event):
+            try:
+                current_val = checkbox_list.values[checkbox_list._selected_index][0]
+                if isinstance(current_val, int):
+                    event.app.exit(result=("SYNC_SINGLE", current_val))
+            except: pass
+
+        @kb.add('escape')
+        def _(event):
+            event.app.exit(result="BACK")
+
+        @kb.add('enter')
+        def _(event):
+            event.app.exit(result=checkbox_list.current_values)
+
+        @kb.add('c-c')
+        def _(event):
+            event.app.exit(result=None)
+
+        custom_style = Style.from_dict({
+            'checkbox-checked': 'fg:ansigreen bold',
+            'checkbox-selected': 'bg:ansicyan fg:black',
+            'focused': 'bg:ansicyan fg:black',
+            'checkbox': 'fg:ansigray',
+            'description': 'fg:ansicyan bold',
+        })
+
+        desc = "Albums\n(Arrows=Nav, Space=Select, S=Sync Highlighted, ESC=Back, Enter=Sync Selected)"
+        layout = Layout(HSplit([
+            Window(content=FormattedTextControl(desc), height=2, style="class:description"),
+            checkbox_list
+        ]))
+
+        app = Application(layout=layout, key_bindings=kb, style=custom_style, full_screen=False)
+        main_choice = app.run()
+
+        if main_choice is None: return items
+        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
         
-        real_indices = [v for v in selected_indices if isinstance(v, int)]
-        if real_indices:
-            selected_items = [items[idx] for idx in real_indices]
+        if isinstance(main_choice, tuple) and main_choice[0] == "SYNC_SINGLE":
+            idx = main_choice[1]
+            item = items[idx]
+            sync_playlist(item["title"], item["url"], prefix="Album - ")
+            continue
+
+        selected_indices = [v for v in main_choice if isinstance(v, int)]
+        if selected_indices:
+            selected_items = [items[idx] for idx in selected_indices]
             for i, album in enumerate(selected_items, 1):
                 sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_items))
     return items
@@ -429,7 +485,7 @@ if __name__ == "__main__":
     try:
         while True:
             cmd = questionary.select(
-                "=== YouTube Music Manager v.3 ===",
+                "=== YouTube Music Manager v.3.2 ===",
                 choices=[
                     "Sync Playlists",
                     "Sync Albums",
