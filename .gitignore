@@ -5,3 +5,4 @@ archive.txt
 *.log
 .DS_Store
 cookies.txt
+discovery_cache.json
