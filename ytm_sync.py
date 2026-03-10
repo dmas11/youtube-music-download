@@ -19,6 +19,13 @@ from rich.progress import (
 from rich.console import Console
 import questionary
 
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.application import Application
+from prompt_toolkit.layout import Layout
+from prompt_toolkit.widgets import CheckboxList
+from prompt_toolkit.layout.containers import Window, HSplit, VSplit
+from prompt_toolkit.layout.controls import FormattedTextControl
+
 MUSIC_DIR = os.path.expanduser("~/Music")
 # Check for common localized music directories
 for local_dir in ["Музыка", "Musique", "Musik", "Musica"]:
@@ -275,8 +282,6 @@ Options:
   -s SELECT Sync specific items by index (comma-separated, e.g., -s 1,3,5)
 """)
 
-from prompt_toolkit.key_binding import KeyBindings
-
 def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_key="playlists"):
     items = cached_playlists
     if items is None:
@@ -284,27 +289,30 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
     
     while True:
         hidden_ids = get_hidden_ids()
+        
+        # Build choices for CheckboxList
         choices = []
-        choices.append(questionary.Choice("--- [ RE-SCAN LIBRARY ] ---", value="RE_SCAN"))
-        choices.append(questionary.Choice("--- [ BACK TO MAIN MENU ] ---", value="BACK"))
-        choices.append(questionary.Separator())
-
         for i, item in enumerate(items):
             pid = get_playlist_id(item["url"])
             is_hidden = pid in hidden_ids
-            status = " [RED](HIDDEN)[/red]" if is_hidden else ""
-            choices.append(questionary.Choice(f"{item['title'] or '[Private]'}{status}", value=i))
+            status = " (HIDDEN)" if is_hidden else ""
+            choices.append((i, f"{item['title'] or '[Private]'}{status}"))
 
+        # Add control options
+        choices.insert(0, ("RE_SCAN", "--- [ RE-SCAN LIBRARY ] ---"))
+        choices.insert(1, ("BACK", "--- [ BACK TO MAIN MENU ] ---"))
+
+        checkbox_list = CheckboxList(choices)
+        
         kb = KeyBindings()
 
         @kb.add('h')
         def _(event):
             try:
-                # Questionary specific way to get current index in checkbox
-                current_idx = event.app.questionary_instance.control.index
-                choice = choices[current_idx]
-                if isinstance(choice.value, int):
-                    pid = get_playlist_id(items[choice.value]["url"])
+                # Get the value of the currently highlighted item
+                current_val = checkbox_list.values[checkbox_list._selected_index][0]
+                if isinstance(current_val, int):
+                    pid = get_playlist_id(items[current_val]["url"])
                     hids = get_hidden_ids()
                     if pid in hids: hids.remove(pid)
                     else: hids.add(pid)
@@ -315,28 +323,33 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         @kb.add('s')
         def _(event):
             try:
-                current_idx = event.app.questionary_instance.control.index
-                choice = choices[current_idx]
-                if isinstance(choice.value, int):
-                    event.app.exit(result=("SYNC_SINGLE", choice.value))
+                current_val = checkbox_list.values[checkbox_list._selected_index][0]
+                if isinstance(current_val, int):
+                    event.app.exit(result=("SYNC_SINGLE", current_val))
             except: pass
 
-        # Using questionary.prompt which handles key_bindings merging more gracefully across versions
-        result = questionary.prompt([
-            {
-                'type': 'checkbox',
-                'name': 'res',
-                'message': f"--- {menu_title} --- (Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)",
-                'choices': choices,
-                'key_bindings': kb,
-                'style': questionary.Style([('selected', 'fg:green bold'), ('highlighted', 'fg:cyan')])
-            }
-        ])
-        
-        if result is None: return items
-        main_choice = result.get('res')
-        if main_choice is None: return items # User might have pressed Ctrl+C
+        @kb.add('enter')
+        def _(event):
+            # Normal behavior: exit with the selected indices
+            event.app.exit(result=checkbox_list.current_values)
 
+        @kb.add('c-c')
+        def _(event):
+            event.app.exit(result=None)
+
+        # Style the menu
+        desc = f"{menu_title}\n(Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)"
+        layout = Layout(HSplit([
+            Window(content=FormattedTextControl(desc), height=2, style="bold cyan"),
+            checkbox_list
+        ]))
+
+        app = Application(layout=layout, key_bindings=kb, full_screen=False)
+        main_choice = app.run()
+
+        if main_choice is None: return items
+        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
+        
         if main_choice == "REFRESH":
             items = get_library_items()[fallback_key]
             continue
@@ -350,9 +363,6 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         if "RE_SCAN" in (main_choice if isinstance(main_choice, list) else [main_choice]):
             items = get_library_items()[fallback_key]
             continue
-
-        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]):
-            return items
         
         selected_indices = [v for v in main_choice if isinstance(v, int)]
         if selected_indices:
