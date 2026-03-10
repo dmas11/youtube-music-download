@@ -17,6 +17,7 @@ from rich.progress import (
     MofNCompleteColumn
 )
 from rich.console import Console
+import questionary
 
 MUSIC_DIR = os.path.expanduser("~/Music")
 # Check for common localized music directories
@@ -282,50 +283,66 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         items = get_library_items()[fallback_key]
     
     while True:
-        print(f"\n--- {menu_title} ---")
-        for i, item in enumerate(items, 1):
-            print(f"[{i}] {item['title'] or '[Private Item]'}")
-        
-        print("\n[A] Sync ALL")
-        print("[H] Hide/Unhide Items")
-        print("[S] Re-Scan Library")
-        print("[B] Back to Main Menu")
-        
-        try:
-            choice = input("\nSelect numbers or 'A', 'H', 'S', 'B': ").strip().upper()
-        except KeyboardInterrupt:
-            return items
-        if choice == 'B': return items
-        if choice == 'S':
+        choices = [f"{i}. {item['title'] or '[Private Item]'}" for i, item in enumerate(items, 1)]
+        main_choice = questionary.select(
+            f"--- {menu_title} ---",
+            choices=[
+                "Sync Selected Items",
+                "Sync ALL",
+                "Hide/Unhide Items",
+                "Re-Scan Library",
+                "Back to Main Menu"
+            ]
+        ).ask()
+
+        if main_choice == "Back to Main Menu" or main_choice is None: return items
+        if main_choice == "Re-Scan Library":
             data = get_library_items()
-            return data[fallback_key]
+            items = data[fallback_key]
+            continue
         
-        if choice == 'H':
-            h_choice = input("Enter numbers to toggle hide status: ").strip()
-            try:
-                indices = [int(x.strip()) - 1 for x in h_choice.split(',') if x.strip().isdigit()]
-                hidden_ids = get_hidden_ids()
-                for idx in indices:
-                    if 0 <= idx < len(items):
-                        pid = get_playlist_id(items[idx]["url"])
-                        if pid in hidden_ids: hidden_ids.remove(pid)
-                        else: hidden_ids.add(pid)
-                save_hidden_ids(hidden_ids)
+        if main_choice == "Sync ALL":
+            selected_items = items
+        elif main_choice == "Sync Selected Items":
+            selected_names = questionary.checkbox(
+                "Select playlists to sync (Space to toggle, Enter to confirm):",
+                choices=choices
+            ).ask()
+            if not selected_names: continue
+            selected_indices = [int(name.split(".")[0]) - 1 for name in selected_names]
+            selected_items = [items[idx] for idx in selected_indices]
+        elif main_choice == "Hide/Unhide Items":
+            # Show all items and their current status
+            hidden_ids = get_hidden_ids()
+            checkbox_choices = []
+            for i, item in enumerate(items, 1):
+                pid = get_playlist_id(item["url"])
+                is_hidden = pid in hidden_ids
+                checkbox_choices.append(questionary.Choice(f"{i}. {item['title']}", checked=is_hidden))
+            
+            selected_for_hiding = questionary.checkbox(
+                "Check items to HIDE, uncheck to UNHIDE:",
+                choices=checkbox_choices
+            ).ask()
+            
+            if selected_for_hiding is not None:
+                new_hidden_ids = set()
+                # Maintain existing hidden IDs that aren't in the current view
+                # (Simple approach: just update from the current selection)
+                current_pids = {get_playlist_id(item["url"]) for item in items}
+                # Keep hidden items that are NOT in the current menu
+                new_hidden_ids = {pid for pid in hidden_ids if pid not in current_pids}
+                # Add the ones currently checked
+                for name in selected_for_hiding:
+                    idx = int(name.split(".")[0]) - 1
+                    new_hidden_ids.add(get_playlist_id(items[idx]["url"]))
+                
+                save_hidden_ids(new_hidden_ids)
                 print("Update complete. Re-scanning...")
                 data = get_library_items()
-                return data[fallback_key]
-            except: pass
+                items = data[fallback_key]
             continue
 
-        selected_items = []
-        if choice == 'A':
-            selected_items = items
-        else:
-            try:
-                indices = [int(x.strip()) - 1 for x in choice.split(',') if x.strip().isdigit()]
-                selected_items = [items[i] for i in indices if 0 <= i < len(items)]
-            except: pass
-            
         if selected_items:
             for i, item in enumerate(selected_items, 1):
                 sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(selected_items))
@@ -337,35 +354,37 @@ def album_sync_menu(cached_albums=None):
         items = get_library_items()["albums"]
 
     while True:
-        print("\n--- Albums ---")
-        for i, album in enumerate(items, 1):
-            print(f"[{i}] {album['title']}")
-        
-        print("\n[A] Sync ALL")
-        print("[S] Re-Scan Library")
-        print("[B] Back to Main Menu")
-        
-        try:
-            choice = input("\nSelect index or 'A', 'S', 'B': ").strip().upper()
-        except KeyboardInterrupt:
-            return items
-        if choice == 'B': return items
-        if choice == 'S':
-            items = get_library_items()["albums"]
+        choices = [f"{i}. {item['title']}" for i, item in enumerate(items, 1)]
+        main_choice = questionary.select(
+            "--- Albums ---",
+            choices=[
+                "Sync Selected Items",
+                "Sync ALL",
+                "Re-Scan Library",
+                "Back to Main Menu"
+            ]
+        ).ask()
+
+        if main_choice == "Back to Main Menu" or main_choice is None: return items
+        if main_choice == "Re-Scan Library":
+            data = get_library_items()
+            items = data["albums"]
             continue
         
-        selected_albums = []
-        if choice == 'A':
-            selected_albums = items
-        else:
-            try:
-                indices = [int(x.strip()) - 1 for x in choice.split(',') if x.strip().isdigit()]
-                selected_albums = [items[i] for i in indices if 0 <= i < len(items)]
-            except: pass
+        if main_choice == "Sync ALL":
+            selected_items = items
+        elif main_choice == "Sync Selected Items":
+            selected_names = questionary.checkbox(
+                "Select albums to sync (Space to toggle, Enter to confirm):",
+                choices=choices
+            ).ask()
+            if not selected_names: continue
+            selected_indices = [int(name.split(".")[0]) - 1 for name in selected_names]
+            selected_items = [items[idx] for idx in selected_indices]
             
-        if selected_albums:
-            for i, album in enumerate(selected_albums, 1):
-                sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_albums))
+        if selected_items:
+            for i, album in enumerate(selected_items, 1):
+                sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_items))
     return items
 
 if __name__ == "__main__":
@@ -401,30 +420,32 @@ if __name__ == "__main__":
 
     try:
         while True:
-            print("\n=== YouTube Music Manager ===")
-            print("[P] Sync Playlists")
-            print("[A] Sync Albums")
-            print("[H] Hidden Playlists (Non-Music)")
-            print("[E] Edit Local Metadata")
-            print("[M] Manual URL Sync")
-            print("[S] Scan Library (Refresh)")
-            print("[Q] Quit")
-            
-            try:
-                cmd = input("\nChoice: ").strip().upper()
-                if cmd == 'Q': break
-                elif cmd == 'E': subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
-                elif cmd == 'A': cached_data["albums"] = album_sync_menu(cached_data["albums"])
-                elif cmd == 'P': cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
-                elif cmd == 'H': cached_data["hidden"] = playlist_sync_menu(cached_data["hidden"], "Hidden Playlists", "hidden")
-                elif cmd == 'S': 
-                    data = get_library_items()
-                    cached_data["playlists"], cached_data["albums"], cached_data["hidden"] = data["playlists"], data["albums"], data["hidden"]
-                elif cmd == 'M':
-                    url = input("URL: "); name = input("Folder Name: ")
-                    if url and name: sync_playlist(name, url)
-            except KeyboardInterrupt:
-                print("\nExiting...")
-                sys.exit(0)
+            cmd = questionary.select(
+                "=== YouTube Music Manager v.2 ===",
+                choices=[
+                    "Sync Playlists",
+                    "Sync Albums",
+                    "Hidden Playlists (Non-Music)",
+                    "Edit Local Metadata",
+                    "Manual URL Sync",
+                    "Scan Library (Refresh)",
+                    "Quit"
+                ]
+            ).ask()
+
+            if cmd == "Quit" or cmd is None: break
+            elif cmd == "Edit Local Metadata": subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
+            elif cmd == "Sync Albums": cached_data["albums"] = album_sync_menu(cached_data["albums"])
+            elif cmd == "Sync Playlists": cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
+            elif cmd == "Hidden Playlists (Non-Music)": cached_data["hidden"] = playlist_sync_menu(cached_data["hidden"], "Hidden Playlists", "hidden")
+            elif cmd == "Scan Library (Refresh)": 
+                data = get_library_items()
+                cached_data["playlists"], cached_data["albums"], cached_data["hidden"] = data["playlists"], data["albums"], data["hidden"]
+            elif cmd == "Manual URL Sync":
+                url = input("URL: "); name = input("Folder Name: ")
+                if url and name: sync_playlist(name, url)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        sys.exit(0)
     except KeyboardInterrupt:
         print("\nExiting...")
