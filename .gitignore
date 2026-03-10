@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+archive.txt
+*.log
+.DS_Store
+cookies.txt
