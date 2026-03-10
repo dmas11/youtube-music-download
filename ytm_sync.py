@@ -30,221 +30,206 @@ YT_DLP = ["python3", "-m", "yt_dlp"]
 # Categories that are definitely NOT music
 EXCLUDE_CATEGORIES = ["Education", "News & Politics", "Science & Technology", "Movies", "Shows", "Travel & Events"]
 
-VERIFIED_MUSIC_PLAYLISTS = [
-  {"title": "Понравившаяся музыка", "url": "https://music.youtube.com/playlist?list=LM"},
-  {"title": "TikTok Songs", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1Ahdj_oKGfLDT90mJZ-Keq_Q"},
-  {"title": "Grace OST", "url": "https://music.youtube.com/playlist?list=PLRkjGcL9HL6CbBuvvnlntngEh_83ZnOLt"},
-  {"title": "Ultracore", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1Aib5UiMZsD4mQDCV9kn_GdF"},
-  {"title": "Smash hit OST [in order of Checkpoints]", "url": "https://music.youtube.com/playlist?list=PLR8-BKNj8vBd3H_ktQ-P3oz1l9WbWcqlF"},
-  {"title": "sv", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1AjyJ36qkmRLqH1-1letwTW4"},
-  {"title": "Vocaloid", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1Ahp7RBJhhdDsQYvWTt58gng"},
-  {"title": "Areo", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1Ag2O_qykf1ix3ETeR9uBCPD"},
-  {"title": "sr", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1AjncjuMdCZf3yWzduRoKEot"},
-  {"title": "Heyselcuk Ai Synthwave Music", "url": "https://music.youtube.com/playlist?list=PLqijHsE8ioug3ToAyDXd4Z7BPnKoFIETm"},
-  {"title": "2025 Recap", "url": "https://music.youtube.com/playlist?list=LRYR7ZRZTOkqGWK-Z7UTHoH8xgFNPCmyeFnXF"},
-  {"title": "Combat Initiation", "url": "https://music.youtube.com/playlist?list=PLS1Fje5-SsBrn5rcjlPVE3aCAtlLqJhTY"},
-  {"title": "Silksong OST", "url": "https://music.youtube.com/playlist?list=PLfUKr9nPvx8ABgIm4YYOcY0fLz-za7jA7"},
-  {"title": "C418 - Minecraft: Volume Final (Confirmed / speculated songs)", "url": "https://music.youtube.com/playlist?list=PL7i1I9QFAv7OWMgbXwCz66UB8xbOOxGq7"},
-  {"title": "The Complete ULTRAKILL OST", "url": "https://music.youtube.com/playlist?list=PL_7N2OGhRlMf2Hi3eDKvJlW9IUV366oT3"},
-  {"title": "Work breakcore", "url": "https://music.youtube.com/playlist?list=PLOMPw_qbdnq1UlctJ-Fk-O5QbNMgmukau"},
-  {"title": "Something Evil Will Happen OST", "url": "https://music.youtube.com/playlist?list=PLO7Lc9CGFoJP8j41mWKSn2g5pKlRCnBc1"},
-  {"title": "ROBLOX Music", "url": "https://music.youtube.com/playlist?list=PLmJLiAlf24OjDLmlQ66DRWj_RqpRYW7Xd"},
-  {"title": "Forsaken OST (Roblox)", "url": "https://music.youtube.com/playlist?list=PLAl67ptS1aswzAivpHhYc7b66_w2JrtDd"},
-  {"title": "Hollow Knight Ambience 10h", "url": "https://music.youtube.com/playlist?list=PLfUKr9nPvx8Cey-mKoaC4QpGTfM2nO7Xm"},
-  {"title": "OneShot Full OST", "url": "https://music.youtube.com/playlist?list=PLa73G0dLHZJC2PQWXSLAbmoCA8sj0IdeM"},
-  {"title": "SWAPPERTALE (beats 2 and 4 are swapped)", "url": "https://music.youtube.com/playlist?list=PL7WohJN28CH6sP1RGNadOuRkJL2d-N_ru"},
-  {"title": "PRESSURE OFFICIAL GAME OST", "url": "https://music.youtube.com/playlist?list=PL0up-UAK8KPWcAjVTHL6NMU1wZChMdYRo"},
-  {"title": "DOORS Roblox OST", "url": "https://music.youtube.com/playlist?list=PLR7tH5RWHYe6O-wx-PJmVk5K1boGTJTuc"},
-  {"title": "🍄Dreamcore/Weirdcore👁", "url": "https://music.youtube.com/playlist?list=PLF_WTWH2u3I9HFWY-xibGoiCrvgvqgXHF"},
-  {"title": "Baba Is You OST", "url": "https://music.youtube.com/playlist?list=PLMoZgWjm14OF2AWFfPc3cyQH7T2SC89jo"},
-  {"title": "Minecraft Soundtrack", "url": "https://music.youtube.com/playlist?list=PLP_-9d7m0d3e61gxuu5g1rcNCa7L8ObaH"},
-  {"title": "Portal Songs + Films", "url": "https://music.youtube.com/playlist?list=PLECBCD09F7DAFDA8C"},
-  {"title": "Minecraft Volume Alpha", "url": "https://music.youtube.com/playlist?list=PLHykAyQQdTart3T8wrDjEnAFEmbVstInA"},
-  {"title": "Impossible Piano Tutorials from Sheet Music Boss", "url": "https://music.youtube.com/playlist?list=PLDvkGjpaMAmzc5IDm8vVRbFBtYJZHs0Mx"},
-  {"title": "Human Fall Flat Full OST", "url": "https://music.youtube.com/playlist?list=PLIjPUgWn2kINgbcEkMv6HlZ2u9qhRfdAz"},
-  {"title": "msk", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1AhYUY_qGGjhCp1oonUnAqee"},
-  {"title": "NCS", "url": "https://music.youtube.com/playlist?list=PLHrM7HbaQ1AjqI06osps58LJsR58POJE1"},
-  {"title": "Superliminal OST (Official)", "url": "https://music.youtube.com/playlist?list=PL4l-_roC68Gwmt668QBow23JKyOPwrBb8"},
-  {"title": "Superliminal OST", "url": "https://music.youtube.com/playlist?list=PL4l-_roC68GzrmReXuez9Nt7_EGLvD0rm"},
-  {"title": "Hollow Knight Voice", "url": "https://music.youtube.com/playlist?list=PLXSGzFtDdC39q6UgcpWElC9ho66ZBqpSr"},
-  {"title": "Hollow Knight: Gods & Nightmares", "url": "https://music.youtube.com/playlist?list=PLYnSM_n8EAqzP1Asp99QQHPdzA6wlZYrh"},
-  {"title": "Hollow Knight: The Grimm Troupe", "url": "https://music.youtube.com/playlist?list=PLYnSM_n8EAqw1ATaEGvLclOwciuCg8EMB"},
-  {"title": "Hollow Knight: Hidden Dreams", "url": "https://music.youtube.com/playlist?list=PLYnSM_n8EAqzxXH0swyCcvwoHBGgUGF70"},
-  {"title": "Soundtrack Sunday", "url": "https://music.youtube.com/playlist?list=PLYnSM_n8EAqz1FyXeQDxhqDXbJ0dGbS2Y"},
-  {"title": "Cats are Liquid - A Better Place - OST", "url": "https://music.youtube.com/playlist?list=PLaf72QlWgB6ed4_U-jCt43w6IjIjGdyGr"}
-]
+# We will now discover these dynamically, but we'll keep a 'fav' list for quick access if needed.
+# For now, we'll shift to full discovery.
+VERIFIED_MUSIC_PLAYLISTS = [] 
 
 def get_item_category(item):
-    """Checks the category of the first few items in a playlist."""
-    url = item.get("url")
-    title = item.get("title", "").lower()
-    
-    # Priority keywords for music-related content (stricter)
-    # If these are in the title, we trust it more.
-    trust_score = 0
-    if any(k in title for k in ["album", "ost", "soundtrack", "remix", "breakcore", "synthwave", "chill", "lofi", "ambient", "radio"]):
-        trust_score += 2
-    if any(k in title for k in ["music", "song"]):
-        trust_score += 1
-        
-    try:
-        # Check first 3 items
-        cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--print", "category", "--playlist-items", "1-3", url]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        categories = [c.strip() for c in res.stdout.splitlines() if c.strip()]
-        
-        # If any of the first 3 are Music, it's a win
-        if "Music" in categories:
-            return item, "Music"
-            
-        # If all items are in exclude list, it's a definite NO
-        if categories and all(c in EXCLUDE_CATEGORIES or c == "Gaming" for c in categories):
-            # Exception: if trust score is high, it might be an OST categorized as Gaming
-            if trust_score >= 2:
-                return item, "Music"
-            return item, "Exclude"
-            
-        # Default fallback for ambiguous ones
-        if trust_score >= 1:
-            return item, "Music"
-            
-        return item, "Exclude"
-    except:
-        # On timeout/error, we default to Exclude to be safe, unless trust score is high
-        if trust_score >= 2:
-            return item, "Music"
-        return item, "Exclude"
+    """Categorization check - greatly simplified for direct library discovery."""
+    return item, "Music" # We trust our direct library scans
 
 def get_library_items():
     print("Discovering library items (playlists and albums)...")
     
-    items_by_id = {} # Key: Playlist ID, Value: item
-    
+    # We use the full library state as a base to avoid 'allat work' of manual URLs
+    # This list was discovered via browser scraping for 100% accuracy
+    PRE_DISCOVERED_ALBUMS = [
+        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/browse/MPREb_l0ncMd048Oi"},
+        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/browse/MPREb_2P1MWwMNdRk"},
+        {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/browse/MPREb_gaJgUErCmNd"},
+        {"title": "Drukqs", "url": "https://music.youtube.com/browse/MPREb_lgoA12szhnF"},
+        {"title": "Syro", "url": "https://music.youtube.com/browse/MPREb_Kb7vRRDhNB4"},
+        {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_8bV0iPW0aAg"},
+        {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_FSO2DJeftqJ"},
+        {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_sEjxpjwkfVG"},
+        {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_m8rfKzVeHHV"},
+        {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/browse/MPREb_06UoDlXCXsL"},
+        {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_ToxYpPvypYM"},
+        {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_z7umw8rEcDn"},
+        {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/browse/MPREb_YbNmLbLu1Ap"},
+        {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_jW76ZNB3Ias"},
+        {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_WY1vd5STcVi"},
+        {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_2VJdjvrJduS"},
+        {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/browse/MPREb_R3TvUWbKSH7"},
+        {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/browse/MPREb_hRQyB9z7EMl"},
+        {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/browse/MPREb_t7vbGqrQvOM"},
+        {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_f2NWh7yaUD1"},
+        {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_xI3q2GvT7b3"},
+        {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_9F6fsDOVZ8v"},
+        {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_yGEHIfqr0y8"}
+    ]
+
     def get_playlist_id(url):
         match = re.search(r'list=([a-zA-Z0-9_-]+)', url)
         return match.group(1) if match else url
 
-    # Add verified ones first
-    for item in VERIFIED_MUSIC_PLAYLISTS:
-        pid = get_playlist_id(item["url"])
-        if pid not in items_by_id:
-            items_by_id[pid] = item
-    
-    # Broad targets for new discovery, but we rely on strict filtering below
+    # Discovery feeds for playlists (we use multiple to ensure we catch everything)
     targets = [
-        "https://www.youtube.com/feed/playlists",      # All playlists
-        "https://www.youtube.com/feed/playlists?view=1", # Only created playlists
-        "https://www.youtube.com/feed/library"         # General library
+        "https://www.youtube.com/feed/playlists?view=1", # Created/Saved
+        "https://www.youtube.com/feed/playlists",        # All
+        "https://www.youtube.com/feed/library"           # Library
     ]
     
-    discovered_count = 0
-    for target in targets:
-        cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--flat-playlist", "--dump-json", target]
+    categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS)}
+    processed_ids = {get_playlist_id(album["url"]) for album in PRE_DISCOVERED_ALBUMS}
+
+    for target_url in targets:
+        cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--flat-playlist", "--dump-json", target_url]
         try:
+            cmd += ["--extractor-args", "youtubetab:skip=authcheck"]
             res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             for line in res.stdout.splitlines():
                 try:
                     data = json.loads(line)
                     title, url = data.get("title"), data.get("url")
-                    if url:
-                        pid = get_playlist_id(url)
-                        if pid not in items_by_id:
-                            # Stricter exclusion: hide known system/non-music titles
-                            lower_title = title.lower() if title else ""
-                            if not any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "сохр1", "сохр2", "удаляю интернет"]):
-                                items_by_id[pid] = {"title": title, "url": url}
-                                discovered_count += 1
+                    if not url: continue
+                    
+                    pid = get_playlist_id(url)
+                    if pid in processed_ids: continue
+                    
+                    # Basic filters for "clean" discovery
+                    lower_title = title.lower() if title else ""
+                    if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
+                        continue
+
+                    categorized["playlists"].append({"title": title, "url": url})
+                    processed_ids.add(pid)
                 except: pass
         except: pass
 
-    if not items_by_id: return []
+    # Always include Liked Music
+    if "LM" not in processed_ids:
+        categorized["playlists"].insert(0, {"title": "Liked music", "url": "https://music.youtube.com/playlist?list=LM"})
 
-    print(f"Discovered {len(items_by_id)} unique library items ({discovered_count} new). Refining list by content...")
-    music_items = []
+    for key in categorized:
+        unique = {item["url"]: item for item in categorized[key]}
+        categorized[key] = sorted(list(unique.values()), key=lambda x: x["title"].lower() if x["title"] else "")
     
-    # Verified ones are skipped from the expensive category check
-    verified_ids = {get_playlist_id(item["url"]) for item in VERIFIED_MUSIC_PLAYLISTS}
+    print(f"Discovery complete. {len(categorized['playlists'])} playlists and {len(categorized['albums'])} albums ready.")
     
-    def check_and_filter(pid, item):
-        if pid in verified_ids:
-            return item, "Music"
-        return get_item_category(item)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        future_to_id = {executor.submit(check_and_filter, pid, item): pid for pid, item in items_by_id.items()}
-        for future in concurrent.futures.as_completed(future_to_id):
-            try:
-                item, category = future.result()
-                if category == "Music":
-                    music_items.append(item)
-            except: pass
-
-    music_items.sort(key=lambda x: x["title"].lower() if x["title"] else "")
-    print(f"Discovery complete. {len(music_items)} items ready.")
-    return music_items
+    # Persistent cache so it doesn't reset on restart
+    try:
+        with open(os.path.join(os.getcwd(), "discovery_cache.json"), "w") as f:
+            json.dump(categorized, f)
+    except: pass
+    
+    return categorized
 
 def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|]', "", name or "Unnamed")
 
-ALBUMS = [
-  {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
-  {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mVMiJRxAH5HCtpSQel-RkiN3AgeYzlo9Y"},
-  {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lZkvKIZyR18ZHUPdUaiF1pmKRHjr6sovk"},
-  {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"},
-  {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ngNQsDqZlbbp5a-BZ6BhQF9VzwY1xDHIQ"},
-  {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ljXkQlhVlWyV7BxSxMMzgOLbzYS_-JPt4"},
-  {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m6f3H_Be9d-wgEZ8iexYbTl0Sk_koDAJY"},
-  {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mPd3bgeYqn1kYq4WcMkK81W_Ah0aEQypE"},
-  {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_klZxReMOuU562U-e9KldU3DDQsIhnMDxc"},
-  {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lx3LhwbhstxzQcZIXqDBr7sNOjz5ZKr7A"},
-  {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lOxSWAQX3iFOW6dH_aU_FlFqxFQV42g84"},
-  {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m-rr6K-H8nfmI3MdSzCRpQw0gxDeG5jzk"},
-  {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kidGzGmzCUSJK1LAtIh7ngZwRF9MT3qjE"},
-  {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kWMjW9nvHXHjIXgBPfQz3vP4E5jpFuaow"},
-  {"title": "Drukqs", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nG46LZ_uffzpRmfuooj3L0LGSJOMBOVQo"},
-  {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/playlist?list=OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0"},
-  {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_krzWyMq_JgKyrDh-zjM7ry9oyusXyk0EY"},
-  {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_k-fz2U2mTfcN9R63A7DyL6V_BDUOLpyiE"},
-  {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lLkMYaC8VvsHDlzqKR1nX-ccJVKBdroWI"},
-  {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mbBdg2HkSefEsH2riHFIvBWaMrux0F64A"},
-  {"title": "Syro", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lYw1W8SsabxulshCqGJFlY71VGXedyooc"}
-]
+ALBUMS = [] # Phasing out hardcoded albums
 
-def sync_playlist(name, url, skip_filters=True, prefix=""):
+import yt_dlp
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, DownloadColumn, TransferSpeedColumn, TimeRemainingColumn
+from rich.console import Console
+
+console = Console()
+
+def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, total_items=None):
     safe_name = sanitize_filename(name)
     target_dir = os.path.join(MUSIC_DIR, f"{prefix}{safe_name}")
     os.makedirs(target_dir, exist_ok=True)
     
-    print(f"\n--- Syncing: {name} ---")
-    cmd = YT_DLP + [
-        "-x", "--audio-format", "mp3",
-        "--audio-quality", "0",
-        "-f", "ba/b",
-        "-o", f"{target_dir}/%(title)s.%(ext)s",
-        "--download-archive", os.path.join(target_dir, "archive.txt"),
-        "--cookies-from-browser", "firefox",
-        "--js-runtimes", f"node:{NODE_PATH}",
-        "--extractor-args", "youtube:player_client=web,android,ios;youtubetab:skip=authcheck",
-        "--ignore-errors",
-        "--embed-metadata",
-        "--embed-thumbnail",
-        "--convert-thumbnails", "jpg",
-        "--ppa", "ThumbnailsConvertor:-qmin 1 -qmax 1",
-        "--ppa", "ffmpeg: -mapping_family 0",
-        "--ppa", "ffmpeg:-id3v2_version 3",
-        "--parse-metadata", "%(album,playlist,playlist_title)s:%(album)s",
-    ]
-    
-    if not skip_filters:
-        cmd += ["--match-filters", "category = 'Music' | (artist & track & album)"]
-    
-    cmd.append(url)
-    
-    env = os.environ.copy()
-    if os.path.exists(NODE_PATH):
-        env["PATH"] = f"{os.path.dirname(NODE_PATH)}:{env.get('PATH', '')}"
-    
-    subprocess.run(cmd, env=env)
+    # Progress Bar Setup
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        # DownloadColumn(), # We'll add this specifically for track task
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        TransferSpeedColumn(),
+        TimeRemainingColumn(),
+        console=console,
+        expand=True
+    ) as progress:
+        
+        # 1. Global/Playlist level task
+        playlist_desc = f"Syncing: [bold cyan]{name}[/bold cyan]"
+        if current_idx is not None and total_items is not None:
+             playlist_desc = f"[{current_idx}/{total_items}] " + playlist_desc
+        
+        playlist_task = progress.add_task(playlist_desc, total=None)
+        
+        # Tracker for the current track
+        current_track_task = None
+
+        def progress_hook(d):
+            nonlocal current_track_task
+            if d['status'] == 'downloading':
+                if current_track_task is None:
+                    filename = os.path.basename(d.get('filename', 'Unknown'))
+                    current_track_task = progress.add_task(f"  └─ [yellow]Downloading:[/yellow] {filename}", total=d.get('total_bytes') or d.get('total_bytes_estimate'))
+                
+                if current_track_task is not None:
+                    progress.update(current_track_task, completed=d.get('downloaded_bytes', 0), total=d.get('total_bytes') or d.get('total_bytes_estimate'))
+            
+            elif d['status'] == 'finished':
+                if current_track_task is not None:
+                    progress.update(current_track_task, completed=100, total=100, description="  └─ [green]Finished downloading[/green]")
+                    progress.remove_task(current_track_task)
+                    current_track_task = None
+                progress.update(playlist_task, advance=1)
+
+        ydl_opts = {
+            'format': 'ba/b',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '0',
+            }, {
+                'key': 'FFmpegMetadata',
+                'add_metadata': True,
+            }, {
+                'key': 'EmbedThumbnail',
+            }, {
+                'key': 'FFmpegThumbnailsConvertor',
+                'format': 'jpg',
+            }],
+            'outtmpl': f"{target_dir}/%(title)s.%(ext)s",
+            'download_archive': os.path.join(target_dir, "archive.txt"),
+            'cookiefile': None, # We'll use cookies_from_browser
+            'cookiesfrombrowser': ('firefox',),
+            'quiet': True,
+            'no_warnings': True,
+            'ignoreerrors': True,
+            'noprogress': True, # We use our own rich progress
+            'js_runtimes': [f"node:{NODE_PATH}"],
+            'extractor_args': {'youtube': {'player_client': ['web', 'android', 'ios']}, 'youtubetab': {'skip': ['authcheck']}},
+            'postprocessor_args': {
+                'ffmpeg': ['-id3v2_version', '3', '-mapping_family', '0'],
+                'ThumbnailsConvertor': ['-qmin', '1', '-qmax', '1']
+            },
+            'parse_metadata': ["%(album,playlist,playlist_title)s:%(album)s"],
+            'progress_hooks': [progress_hook],
+        }
+
+        if not skip_filters:
+            ydl_opts['match_filter'] = lambda d, *_, **__: None if (d.get('category') == 'Music' or (d.get('artist') and d.get('track') and d.get('album'))) else 'Not Music'
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # First, extract info to get the count
+            try:
+                info = ydl.extract_info(url, download=False)
+                if 'entries' in info:
+                    entries = list(info['entries'])
+                    progress.update(playlist_task, total=len(entries))
+                    ydl.download([url])
+                else:
+                    progress.update(playlist_task, total=1)
+                    ydl.download([url])
+            except Exception as e:
+                console.print(f"[red]Error starting sync: {e}[/red]")
 
 def print_usage():
     print("""
@@ -257,10 +242,10 @@ Options:
   -s SELECT Sync specific items by index (comma-separated, e.g., -s 1,3,5)
 """)
 
-def playlist_sync_menu(cached_items=None):
-    items = cached_items
+def playlist_sync_menu(cached_playlists=None):
+    items = cached_playlists
     if items is None:
-        items = get_library_items()
+        items = get_library_items()["playlists"]
     
     while True:
         print("\n--- Playlists ---")
@@ -274,39 +259,56 @@ def playlist_sync_menu(cached_items=None):
         choice = input("\nSelect numbers (e.g. 1,3) or 'A', 'S', 'B': ").strip().upper()
         if choice == 'B': return items
         if choice == 'S':
-            items = get_library_items()
+            items = get_library_items()["playlists"]
             continue
+        
+        selected_items = []
         if choice == 'A':
-            for item in items: sync_playlist(item["title"] or "Unnamed", item["url"])
+            selected_items = items
         else:
             try:
                 indices = [int(x.strip()) - 1 for x in choice.split(',') if x.strip().isdigit()]
-                for i in indices:
-                    if 0 <= i < len(items):
-                        sync_playlist(items[i]["title"] or "Unnamed", items[i]["url"])
+                selected_items = [items[i] for i in indices if 0 <= i < len(items)]
             except: pass
+            
+        if selected_items:
+            for i, item in enumerate(selected_items, 1):
+                sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(selected_items))
     return items
 
-def album_sync_menu():
+def album_sync_menu(cached_albums=None):
+    items = cached_albums
+    if items is None:
+        items = get_library_items()["albums"]
+
     while True:
         print("\n--- Albums ---")
-        for i, album in enumerate(ALBUMS, 1):
+        for i, album in enumerate(items, 1):
             print(f"[{i}] {album['title']}")
         
         print("\n[A] Sync ALL")
+        print("[S] Re-Scan Library")
         print("[B] Back to Main Menu")
         
-        choice = input("\nSelect index or 'A', 'B': ").strip().upper()
-        if choice == 'B': return
+        choice = input("\nSelect index or 'A', 'S', 'B': ").strip().upper()
+        if choice == 'B': return items
+        if choice == 'S':
+            items = get_library_items()["albums"]
+            continue
+        
+        selected_albums = []
         if choice == 'A':
-            for album in ALBUMS: sync_playlist(album["title"], album["url"], prefix="Album - ")
+            selected_albums = items
         else:
             try:
                 indices = [int(x.strip()) - 1 for x in choice.split(',') if x.strip().isdigit()]
-                for i in indices:
-                    if 0 <= i < len(ALBUMS):
-                        sync_playlist(ALBUMS[i]["title"], ALBUMS[i]["url"], prefix="Album - ")
+                selected_albums = [items[i] for i in indices if 0 <= i < len(items)]
             except: pass
+            
+        if selected_albums:
+            for i, album in enumerate(selected_albums, 1):
+                sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_albums))
+    return items
 
 if __name__ == "__main__":
     import sys
@@ -320,7 +322,16 @@ if __name__ == "__main__":
         url = input("URL: "); name = input("Folder Name: ")
         if url and name: sync_playlist(name, url); sys.exit(0)
 
-    cached_playlists = None
+    # Load persistent cache if available
+    cache_file = os.path.join(os.getcwd(), "discovery_cache.json")
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r") as f:
+                cached_data = json.load(f)
+        except: cached_data = {"playlists": None, "albums": None}
+    else:
+        cached_data = {"playlists": None, "albums": None}
+
     while True:
         print("\n=== YouTube Music Manager ===")
         print("[P] Sync Playlists")
@@ -333,9 +344,11 @@ if __name__ == "__main__":
         cmd = input("\nChoice: ").strip().upper()
         if cmd == 'Q': break
         elif cmd == 'E': subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
-        elif cmd == 'A': album_sync_menu()
-        elif cmd == 'P': cached_playlists = playlist_sync_menu(cached_playlists)
-        elif cmd == 'S': cached_playlists = get_library_items()
+        elif cmd == 'A': cached_data["albums"] = album_sync_menu(cached_data["albums"])
+        elif cmd == 'P': cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
+        elif cmd == 'S': 
+            data = get_library_items()
+            cached_data["playlists"], cached_data["albums"] = data["playlists"], data["albums"]
         elif cmd == 'M':
             url = input("URL: "); name = input("Folder Name: ")
             if url and name: sync_playlist(name, url)

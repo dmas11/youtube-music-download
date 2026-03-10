@@ -15,7 +15,9 @@ def get_folders():
     return sorted(folders)
 
 def update_metadata(folder_path, album=None, artist=None, year=None):
-    files = [f for f in os.listdir(folder_path) if f.endswith(".mp3")]
+    # Filter for valid .mp3 files, skipping temporary ones
+    files = [f for f in os.listdir(folder_path) 
+             if f.endswith(".mp3") and not f.endswith(".temp.mp3") and not f.endswith(".tmp.mp3")]
     if not files:
         print("No .mp3 files found in this folder.")
         return
