@@ -6,7 +6,16 @@ import concurrent.futures
 import shutil
 import sys
 import yt_dlp
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, DownloadColumn, TransferSpeedColumn, TimeRemainingColumn
+from rich.progress import (
+    Progress, 
+    SpinnerColumn, 
+    TextColumn, 
+    BarColumn, 
+    DownloadColumn, 
+    TransferSpeedColumn, 
+    TimeRemainingColumn,
+    MofNCompleteColumn
+)
 from rich.console import Console
 
 MUSIC_DIR = os.path.expanduser("~/Music")
@@ -152,8 +161,9 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
-        # DownloadColumn(), # We'll add this specifically for track task
+        MofNCompleteColumn(),
         TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        DownloadColumn(),
         TransferSpeedColumn(),
         TimeRemainingColumn(),
         console=console,
