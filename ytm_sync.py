@@ -40,8 +40,8 @@ def get_node_path():
 NODE_PATH = get_node_path()
 YT_DLP = ["python3", "-m", "yt_dlp"]
 
-# Categories that are definitely NOT music
-EXCLUDE_CATEGORIES = ["Education", "News & Politics", "Science & Technology", "Movies", "Shows", "Travel & Events"]
+# Categories/Keywords that are definitely NOT music (for filtering)
+HIDDEN_KEYWORDS = ["education", "news", "politics", "science", "technology", "movie", "show", "travel", "event", "tutorial", "lesson", "course", "lecture", "presentation", "documentary", "unboxing", "review", "vlog", "gaming", "walkthrough", "guide", "how to", "how-to"]
 
 # We will now discover these dynamically, but we'll keep a 'fav' list for quick access if needed.
 # For now, we'll shift to full discovery.
@@ -94,7 +94,7 @@ def get_library_items():
         "https://www.youtube.com/feed/library"           # Library
     ]
     
-    categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS)}
+    categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS), "hidden": []}
     processed_ids = {get_playlist_id(album["url"]) for album in PRE_DISCOVERED_ALBUMS}
 
     for target_url in targets:
@@ -111,17 +111,17 @@ def get_library_items():
                     pid = get_playlist_id(url)
                     if pid in processed_ids: continue
                     
-                    # Basic filters for "clean" discovery
+                    # Basic filters for "clean" discovery (System/Private collections)
                     lower_title = title.lower() if title else ""
                     if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
                         continue
 
-                    # If it's a "browse" URL and we haven't processed it, try to resolve it
-                    if "/browse/MPRE" in url:
-                        # We keep it as is, but we'll try to find its direct playlist ID later if needed
-                        pass
-
-                    categorized["playlists"].append({"title": title, "url": url})
+                    # Categorization: If title contains non-music keywords, move to hidden
+                    if any(kw in lower_title for kw in HIDDEN_KEYWORDS):
+                        categorized["hidden"].append({"title": title, "url": url})
+                    else:
+                        categorized["playlists"].append({"title": title, "url": url})
+                    
                     processed_ids.add(pid)
                 except: pass
         except: pass
@@ -134,7 +134,7 @@ def get_library_items():
         unique = {item["url"]: item for item in categorized[key]}
         categorized[key] = sorted(list(unique.values()), key=lambda x: x["title"].lower() if x["title"] else "")
     
-    print(f"Discovery complete. {len(categorized['playlists'])} playlists and {len(categorized['albums'])} albums ready.")
+    print(f"Discovery complete. {len(categorized['playlists'])} music playlists, {len(categorized['albums'])} albums, and {len(categorized['hidden'])} hidden items.")
     
     # Persistent cache so it doesn't reset on restart
     try:
@@ -260,13 +260,13 @@ Options:
   -s SELECT Sync specific items by index (comma-separated, e.g., -s 1,3,5)
 """)
 
-def playlist_sync_menu(cached_playlists=None):
+def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_key="playlists"):
     items = cached_playlists
     if items is None:
-        items = get_library_items()["playlists"]
+        items = get_library_items()[fallback_key]
     
     while True:
-        print("\n--- Playlists ---")
+        print(f"\n--- {menu_title} ---")
         for i, item in enumerate(items, 1):
             print(f"[{i}] {item['title'] or '[Private Item]'}")
         
@@ -351,20 +351,26 @@ if __name__ == "__main__":
         try:
             with open(cache_file, "r") as f:
                 cached_data = json.load(f)
+            # Ensure "hidden" key exists in old caches
+            if "hidden" not in cached_data:
+                cached_data["hidden"] = None
+            
             # SANITY CHECK: If cache contains old redirects or duplicate Minecraft IDs, force a refresh
+            # Or if hidden was never initialized
             has_old = any("/browse/MPRE" in a.get("url", "") for a in (cached_data.get("albums") or []))
             has_dupes = len(cached_data.get("albums") or []) < 23
-            if has_old or has_dupes:
+            if has_old or has_dupes or cached_data["hidden"] is None:
                 cached_data = get_library_items()
-        except: cached_data = {"playlists": None, "albums": None}
+        except: cached_data = {"playlists": None, "albums": None, "hidden": None}
     else:
-        cached_data = {"playlists": None, "albums": None}
+        cached_data = {"playlists": None, "albums": None, "hidden": None}
 
     try:
         while True:
             print("\n=== YouTube Music Manager ===")
             print("[P] Sync Playlists")
             print("[A] Sync Albums")
+            print("[H] Hidden Playlists (Non-Music)")
             print("[E] Edit Local Metadata")
             print("[M] Manual URL Sync")
             print("[S] Scan Library (Refresh)")
@@ -376,9 +382,10 @@ if __name__ == "__main__":
                 elif cmd == 'E': subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
                 elif cmd == 'A': cached_data["albums"] = album_sync_menu(cached_data["albums"])
                 elif cmd == 'P': cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
+                elif cmd == 'H': cached_data["hidden"] = playlist_sync_menu(cached_data["hidden"], "Hidden Playlists", "hidden")
                 elif cmd == 'S': 
                     data = get_library_items()
-                    cached_data["playlists"], cached_data["albums"] = data["playlists"], data["albums"]
+                    cached_data["playlists"], cached_data["albums"], cached_data["hidden"] = data["playlists"], data["albums"], data["hidden"]
                 elif cmd == 'M':
                     url = input("URL: "); name = input("Folder Name: ")
                     if url and name: sync_playlist(name, url)
