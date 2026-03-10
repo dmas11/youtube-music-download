@@ -299,13 +299,8 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
 
         @kb.add('h')
         def _(event):
-            # Get currently highlighted item index
-            idx_in_choices = event.app.layout.get_buffer_by_name("default").cursor_position # This is tricky in questionary
-            # Questionary stores state in its application.
-            # We use a slight hack to get the highlighted choice index
-            # In questionary checkbox/select, the current index is in the 'index' attribute of the layout/control
             try:
-                # Accessing internal questionary index
+                # Questionary specific way to get current index in checkbox
                 current_idx = event.app.questionary_instance.control.index
                 choice = choices[current_idx]
                 if isinstance(choice.value, int):
@@ -314,7 +309,6 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
                     if pid in hids: hids.remove(pid)
                     else: hids.add(pid)
                     save_hidden_ids(hids)
-                    # Force exit to refresh
                     event.app.exit(result="REFRESH")
             except: pass
 
@@ -324,20 +318,25 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
                 current_idx = event.app.questionary_instance.control.index
                 choice = choices[current_idx]
                 if isinstance(choice.value, int):
-                    # We can't really "exit and continue" easily while keeping the menu open
-                    # So we'll exit with a special result to trigger sync
                     event.app.exit(result=("SYNC_SINGLE", choice.value))
             except: pass
 
-        main_choice = questionary.checkbox(
-            f"--- {menu_title} --- (Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)",
-            choices=choices,
-            key_bindings=kb,
-            style=questionary.Style([('selected', 'fg:green bold'), ('highlighted', 'fg:cyan')])
-        ).ask()
-
-        if main_choice is None or "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
+        # Using questionary.prompt which handles key_bindings merging more gracefully across versions
+        result = questionary.prompt([
+            {
+                'type': 'checkbox',
+                'name': 'res',
+                'message': f"--- {menu_title} --- (Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)",
+                'choices': choices,
+                'key_bindings': kb,
+                'style': questionary.Style([('selected', 'fg:green bold'), ('highlighted', 'fg:cyan')])
+            }
+        ])
         
+        if result is None: return items
+        main_choice = result.get('res')
+        if main_choice is None: return items # User might have pressed Ctrl+C
+
         if main_choice == "REFRESH":
             items = get_library_items()[fallback_key]
             continue
@@ -348,9 +347,12 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
             sync_playlist(item["title"], item["url"])
             continue
 
-        if "RE_SCAN" in main_choice:
+        if "RE_SCAN" in (main_choice if isinstance(main_choice, list) else [main_choice]):
             items = get_library_items()[fallback_key]
             continue
+
+        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]):
+            return items
         
         selected_indices = [v for v in main_choice if isinstance(v, int)]
         if selected_indices:
