@@ -49,8 +49,8 @@ def get_library_items():
     # This list was discovered via browser scraping for 100% accuracy
     # NOTE: Some browse/MPRE URLs fail to resolve in yt-dlp, so we use direct list IDs where verified.
     PRE_DISCOVERED_ALBUMS = [
-        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
-        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"},
+        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nnY0s7ogC6wEI85M_C9NrMLLv6lWOQxqY"},
+        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nhQ2EVQRbH-uWJbaesYXRQGZMzinN0qqg"},
         {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/playlist?list=OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0"},
         {"title": "Drukqs", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nG46LZ_uffzpRmfuooj3L0LGSJOMBOVQo"},
         {"title": "Syro", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lYw1W8SsabxulshCqGJFlY71VGXedyooc"},
@@ -341,8 +341,10 @@ if __name__ == "__main__":
         try:
             with open(cache_file, "r") as f:
                 cached_data = json.load(f)
-            # SANITY CHECK: If cache contains old redirects, force a refresh
-            if any("/browse/MPRE" in a.get("url", "") for a in (cached_data.get("albums") or [])):
+            # SANITY CHECK: If cache contains old redirects or duplicate Minecraft IDs, force a refresh
+            has_old = any("/browse/MPRE" in a.get("url", "") for a in (cached_data.get("albums") or []))
+            has_dupes = len(cached_data.get("albums") or []) < 23
+            if has_old or has_dupes:
                 cached_data = get_library_items()
         except: cached_data = {"playlists": None, "albums": None}
     else:
