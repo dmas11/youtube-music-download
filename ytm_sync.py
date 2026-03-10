@@ -204,7 +204,7 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
             'no_warnings': True,
             'ignoreerrors': True,
             'noprogress': True, # We use our own rich progress
-            'js_runtimes': [f"node:{NODE_PATH}"],
+            'js_runtimes': {'node': {'binary': NODE_PATH}},
             'extractor_args': {'youtube': {'player_client': ['web', 'android', 'ios']}, 'youtubetab': {'skip': ['authcheck']}},
             'postprocessor_args': {
                 'ffmpeg': ['-id3v2_version', '3', '-mapping_family', '0'],
