@@ -39,6 +39,21 @@ def get_node_path():
 
 NODE_PATH = get_node_path()
 YT_DLP = ["python3", "-m", "yt_dlp"]
+HIDE_LIST_FILE = os.path.join(os.getcwd(), ".hidden_playlists")
+
+def get_hidden_ids():
+    if not os.path.exists(HIDE_LIST_FILE): return set()
+    try:
+        with open(HIDE_LIST_FILE, "r") as f:
+            return {line.strip() for line in f if line.strip()}
+    except: return set()
+
+def save_hidden_ids(ids):
+    try:
+        with open(HIDE_LIST_FILE, "w") as f:
+            for pid in sorted(list(ids)):
+                f.write(f"{pid}\n")
+    except: pass
 
 # Categories/Keywords that are definitely NOT music (for filtering)
 HIDDEN_KEYWORDS = ["education", "news", "politics", "science", "technology", "movie", "show", "travel", "event", "tutorial", "lesson", "course", "lecture", "presentation", "documentary", "unboxing", "review", "vlog", "gaming", "walkthrough", "guide", "how to", "how-to"]
@@ -96,6 +111,7 @@ def get_library_items():
     
     categorized = {"playlists": [], "albums": list(PRE_DISCOVERED_ALBUMS), "hidden": []}
     processed_ids = {get_playlist_id(album["url"]) for album in PRE_DISCOVERED_ALBUMS}
+    hidden_pids = get_hidden_ids()
 
     for target_url in targets:
         cmd = YT_DLP + ["--cookies-from-browser", "firefox", "--flat-playlist", "--dump-json", target_url]
@@ -116,8 +132,8 @@ def get_library_items():
                     if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
                         continue
 
-                    # Categorization: If title contains non-music keywords, move to hidden
-                    if any(kw in lower_title for kw in HIDDEN_KEYWORDS):
+                    # Categorization: Priority to manual hide list, then keywords
+                    if pid in hidden_pids or any(kw in lower_title for kw in HIDDEN_KEYWORDS):
                         categorized["hidden"].append({"title": title, "url": url})
                     else:
                         categorized["playlists"].append({"title": title, "url": url})
@@ -271,18 +287,36 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
             print(f"[{i}] {item['title'] or '[Private Item]'}")
         
         print("\n[A] Sync ALL")
+        print("[H] Hide/Unhide Items")
         print("[S] Re-Scan Library")
         print("[B] Back to Main Menu")
         
         try:
-            choice = input("\nSelect numbers (e.g. 1,3) or 'A', 'S', 'B': ").strip().upper()
+            choice = input("\nSelect numbers or 'A', 'H', 'S', 'B': ").strip().upper()
         except KeyboardInterrupt:
             return items
         if choice == 'B': return items
         if choice == 'S':
-            items = get_library_items()["playlists"]
-            continue
+            data = get_library_items()
+            return data[fallback_key]
         
+        if choice == 'H':
+            h_choice = input("Enter numbers to toggle hide status: ").strip()
+            try:
+                indices = [int(x.strip()) - 1 for x in h_choice.split(',') if x.strip().isdigit()]
+                hidden_ids = get_hidden_ids()
+                for idx in indices:
+                    if 0 <= idx < len(items):
+                        pid = get_playlist_id(items[idx]["url"])
+                        if pid in hidden_ids: hidden_ids.remove(pid)
+                        else: hidden_ids.add(pid)
+                save_hidden_ids(hidden_ids)
+                print("Update complete. Re-scanning...")
+                data = get_library_items()
+                return data[fallback_key]
+            except: pass
+            continue
+
         selected_items = []
         if choice == 'A':
             selected_items = items
