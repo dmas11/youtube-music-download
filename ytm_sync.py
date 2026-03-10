@@ -282,62 +282,81 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
     if items is None:
         items = get_library_items()[fallback_key]
     
-    mode = "sync" # "sync" or "hide"
-    
     while True:
-        # Define styles based on mode
-        style_name = "green" if mode == "sync" else "red"
-        custom_style = questionary.Style([
-            ('selected', f'fg:{style_name} bold'),
-            ('pointer', f'fg:{style_name} bold'),
-            ('highlighted', f'fg:{style_name}'),
-            ('answer', f'fg:{style_name} bold'),
-        ])
-
         hidden_ids = get_hidden_ids()
         choices = []
-        
-        # Add special controls at the top
-        choices.append(questionary.Choice(f"--- [ MODE: {mode.upper()} | Click to switch to {'HIDE' if mode == 'sync' else 'SYNC'} ] ---", value="TOGGLE_MODE"))
         choices.append(questionary.Choice("--- [ RE-SCAN LIBRARY ] ---", value="RE_SCAN"))
         choices.append(questionary.Choice("--- [ BACK TO MAIN MENU ] ---", value="BACK"))
         choices.append(questionary.Separator())
 
-        for i, item in enumerate(items, 1):
+        for i, item in enumerate(items):
             pid = get_playlist_id(item["url"])
-            choices.append(questionary.Choice(f"{item['title'] or '[Private Item]'}", value=i-1))
+            is_hidden = pid in hidden_ids
+            status = " [RED](HIDDEN)[/red]" if is_hidden else ""
+            choices.append(questionary.Choice(f"{item['title'] or '[Private]'}{status}", value=i))
+
+        kb = KeyBindings()
+
+        @kb.add('h')
+        def _(event):
+            # Get currently highlighted item index
+            idx_in_choices = event.app.layout.get_buffer_by_name("default").cursor_position # This is tricky in questionary
+            # Questionary stores state in its application.
+            # We use a slight hack to get the highlighted choice index
+            # In questionary checkbox/select, the current index is in the 'index' attribute of the layout/control
+            try:
+                # Accessing internal questionary index
+                current_idx = event.app.questionary_instance.control.index
+                choice = choices[current_idx]
+                if isinstance(choice.value, int):
+                    pid = get_playlist_id(items[choice.value]["url"])
+                    hids = get_hidden_ids()
+                    if pid in hids: hids.remove(pid)
+                    else: hids.add(pid)
+                    save_hidden_ids(hids)
+                    # Force exit to refresh
+                    event.app.exit(result="REFRESH")
+            except: pass
+
+        @kb.add('s')
+        def _(event):
+            try:
+                current_idx = event.app.questionary_instance.control.index
+                choice = choices[current_idx]
+                if isinstance(choice.value, int):
+                    # We can't really "exit and continue" easily while keeping the menu open
+                    # So we'll exit with a special result to trigger sync
+                    event.app.exit(result=("SYNC_SINGLE", choice.value))
+            except: pass
 
         main_choice = questionary.checkbox(
-            f"--- {menu_title} (Press H for HIDE, S for SYNC) ---",
+            f"--- {menu_title} --- (Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, Enter=Sync Selected)",
             choices=choices,
-            style=custom_style
+            key_bindings=kb,
+            style=questionary.Style([('selected', 'fg:green bold'), ('highlighted', 'fg:cyan')])
         ).ask()
 
-        if main_choice is None: return items
-        if "BACK" in main_choice: return items
+        if main_choice is None or "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
+        
+        if main_choice == "REFRESH":
+            items = get_library_items()[fallback_key]
+            continue
+            
+        if isinstance(main_choice, tuple) and main_choice[0] == "SYNC_SINGLE":
+            idx = main_choice[1]
+            item = items[idx]
+            sync_playlist(item["title"], item["url"])
+            continue
+
         if "RE_SCAN" in main_choice:
             items = get_library_items()[fallback_key]
             continue
-        if "TOGGLE_MODE" in main_choice:
-            mode = "hide" if mode == "sync" else "sync"
-            continue
         
-        # Filter out control values to get real indices
         selected_indices = [v for v in main_choice if isinstance(v, int)]
-        if not selected_indices: continue
-
-        if mode == "sync":
+        if selected_indices:
             selected_items = [items[idx] for idx in selected_indices]
             for i, item in enumerate(selected_items, 1):
                 sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(selected_items))
-        else:
-            new_hidden_ids = get_hidden_ids()
-            for idx in selected_indices:
-                pid = get_playlist_id(items[idx]["url"])
-                if pid in new_hidden_ids: new_hidden_ids.remove(pid)
-                else: new_hidden_ids.add(pid)
-            save_hidden_ids(new_hidden_ids)
-            items = get_library_items()[fallback_key]
     return items
 
 def album_sync_menu(cached_albums=None):
@@ -398,7 +417,7 @@ if __name__ == "__main__":
     try:
         while True:
             cmd = questionary.select(
-                "=== YouTube Music Manager v.2 ===",
+                "=== YouTube Music Manager v.3 ===",
                 choices=[
                     "Sync Playlists",
                     "Sync Albums",
