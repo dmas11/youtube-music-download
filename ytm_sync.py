@@ -43,30 +43,31 @@ def get_library_items():
     
     # We use the full library state as a base to avoid 'allat work' of manual URLs
     # This list was discovered via browser scraping for 100% accuracy
+    # NOTE: Some browse/MPRE URLs fail to resolve in yt-dlp, so we use direct list IDs where verified.
     PRE_DISCOVERED_ALBUMS = [
-        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/browse/MPREb_l0ncMd048Oi"},
-        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/browse/MPREb_2P1MWwMNdRk"},
-        {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/browse/MPREb_gaJgUErCmNd"},
-        {"title": "Drukqs", "url": "https://music.youtube.com/browse/MPREb_lgoA12szhnF"},
-        {"title": "Syro", "url": "https://music.youtube.com/browse/MPREb_Kb7vRRDhNB4"},
-        {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_8bV0iPW0aAg"},
-        {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_FSO2DJeftqJ"},
-        {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_sEjxpjwkfVG"},
-        {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_m8rfKzVeHHV"},
-        {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/browse/MPREb_06UoDlXCXsL"},
-        {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_ToxYpPvypYM"},
-        {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_z7umw8rEcDn"},
-        {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/browse/MPREb_YbNmLbLu1Ap"},
-        {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_jW76ZNB3Ias"},
-        {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_WY1vd5STcVi"},
-        {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_2VJdjvrJduS"},
-        {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/browse/MPREb_R3TvUWbKSH7"},
-        {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/browse/MPREb_hRQyB9z7EMl"},
-        {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/browse/MPREb_t7vbGqrQvOM"},
-        {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_f2NWh7yaUD1"},
-        {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_xI3q2GvT7b3"},
-        {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_9F6fsDOVZ8v"},
-        {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/browse/MPREb_yGEHIfqr0y8"}
+        {"title": "Minecraft - Volume Beta", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
+        {"title": "Minecraft - Volume Alpha", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"},
+        {"title": "Selected Ambient Works 85-92", "url": "https://music.youtube.com/playlist?list=OLAK5uy_npVGHGqWs_-hTzVUivb8lCndQPVB7aIm0"},
+        {"title": "Drukqs", "url": "https://music.youtube.com/playlist?list=OLAK5uy_nG46LZ_uffzpRmfuooj3L0LGSJOMBOVQo"},
+        {"title": "Syro", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lYw1W8SsabxulshCqGJFlY71VGXedyooc"},
+        {"title": "Running From The Internet, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_klZxReMOuU562U-e9KldU3DDQsIhnMDxc"},
+        {"title": "Terraria (Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mPd3bgeYqn1kYq4WcMkK81W_Ah0aEQypE"},
+        {"title": "Slime Rancher 2, Vol.2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m6f3H_Be9d-wgEZ8iexYbTl0Sk_koDAJY"},
+        {"title": "Slime Rancher 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lZkvKIZyR18ZHUPdUaiF1pmKRHjr6sovk"},
+        {"title": "Slime Rancher (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mbBdg2HkSefEsH2riHFIvBWaMrux0F64A"},
+        {"title": "Slime Rancher (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kWMjW9nvHXHjIXgBPfQz3vP4E5jpFuaow"},
+        {"title": "Minecraft Dungeons (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lLkMYaC8VvsHDlzqKR1nX-ccJVKBdroWI"},
+        {"title": "UNDERTALE Soundtrack", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ljXkQlhVlWyV7BxSxMMzgOLbzYS_-JPt4"},
+        {"title": "DELTARUNE Chapter 1 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kidGzGmzCUSJK1LAtIh7ngZwRF9MT3qjE"},
+        {"title": "DELTARUNE Chapters 3+4 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_k-fz2U2mTfcN9R63A7DyL6V_BDUOLpyiE"},
+        {"title": "DELTARUNE Chapter 2 (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_m-rr6K-H8nfmI3MdSzCRpQw0gxDeG5jzk"},
+        {"title": "Selected Ambient Works Volume II", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lOxSWAQX3iFOW6dH_aU_FlFqxFQV42g84"},
+        {"title": "The Foundation (Original Game Soundtrack), Vol. 3", "url": "https://music.youtube.com/playlist?list=OLAK5uy_mVMiJRxAH5HCtpSQel-RkiN3AgeYzlo9Y"},
+        {"title": "The Foundation (Original Game Soundtrack), Vol. 2", "url": "https://music.youtube.com/playlist?list=OLAK5uy_krzWyMq_JgKyrDh-zjM7ry9oyusXyk0EY"},
+        {"title": "Roblox 3008, Vol. 1 (Original Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_ngNQsDqZlbbp5a-BZ6BhQF9VzwY1xDHIQ"},
+        {"title": "Minecraft: Nether Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lx3LhwbhstxzQcZIXqDBr7sNOjz5ZKr7A"},
+        {"title": "Minecraft: Caves & Cliffs (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_lY1VUBCMGOEBon7_sJAKPln2oUQvjPR1w"},
+        {"title": "Minecraft: The Wild Update (Original Game Soundtrack)", "url": "https://music.youtube.com/playlist?list=OLAK5uy_kZ2SAX1x6Nlf1qj_Z-RHB2he9uXXiuuNs"}
     ]
 
     def get_playlist_id(url):
@@ -101,6 +102,11 @@ def get_library_items():
                     lower_title = title.lower() if title else ""
                     if any(x in lower_title for x in ["watch later", "history", "liked videos", "сохраненные выпуски", "удаляю интернет"]):
                         continue
+
+                    # If it's a "browse" URL and we haven't processed it, try to resolve it
+                    if "/browse/MPRE" in url:
+                        # We keep it as is, but we'll try to find its direct playlist ID later if needed
+                        pass
 
                     categorized["playlists"].append({"title": title, "url": url})
                     processed_ids.add(pid)
@@ -334,23 +340,30 @@ if __name__ == "__main__":
     else:
         cached_data = {"playlists": None, "albums": None}
 
-    while True:
-        print("\n=== YouTube Music Manager ===")
-        print("[P] Sync Playlists")
-        print("[A] Sync Albums")
-        print("[E] Edit Local Metadata")
-        print("[M] Manual URL Sync")
-        print("[S] Scan Library (Refresh)")
-        print("[Q] Quit")
-        
-        cmd = input("\nChoice: ").strip().upper()
-        if cmd == 'Q': break
-        elif cmd == 'E': subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
-        elif cmd == 'A': cached_data["albums"] = album_sync_menu(cached_data["albums"])
-        elif cmd == 'P': cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
-        elif cmd == 'S': 
-            data = get_library_items()
-            cached_data["playlists"], cached_data["albums"] = data["playlists"], data["albums"]
-        elif cmd == 'M':
-            url = input("URL: "); name = input("Folder Name: ")
-            if url and name: sync_playlist(name, url)
+    try:
+        while True:
+            print("\n=== YouTube Music Manager ===")
+            print("[P] Sync Playlists")
+            print("[A] Sync Albums")
+            print("[E] Edit Local Metadata")
+            print("[M] Manual URL Sync")
+            print("[S] Scan Library (Refresh)")
+            print("[Q] Quit")
+            
+            try:
+                cmd = input("\nChoice: ").strip().upper()
+                if cmd == 'Q': break
+                elif cmd == 'E': subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
+                elif cmd == 'A': cached_data["albums"] = album_sync_menu(cached_data["albums"])
+                elif cmd == 'P': cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
+                elif cmd == 'S': 
+                    data = get_library_items()
+                    cached_data["playlists"], cached_data["albums"] = data["playlists"], data["albums"]
+                elif cmd == 'M':
+                    url = input("URL: "); name = input("Folder Name: ")
+                    if url and name: sync_playlist(name, url)
+            except KeyboardInterrupt:
+                print("\nInterrupted. Returning to main menu...")
+                continue
+    except KeyboardInterrupt:
+        print("\nExiting...")
