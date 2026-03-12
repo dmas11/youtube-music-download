@@ -17,6 +17,10 @@ from rich.progress import (
     MofNCompleteColumn
 )
 from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.align import Align
+from rich import box
 import questionary
 from prompt_toolkit.styles import Style
 
@@ -50,6 +54,22 @@ def get_node_path():
 NODE_PATH = get_node_path()
 YT_DLP = ["python3", "-m", "yt_dlp"]
 HIDE_LIST_FILE = os.path.join(os.getcwd(), ".hidden_playlists")
+CONFIG_FILE = os.path.join(os.getcwd(), "config.json")
+
+def load_config():
+    if not os.path.exists(CONFIG_FILE):
+        return {"auto_album_change": False}
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {"auto_album_change": False}
+
+def save_config(config):
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=4)
+    except: pass
 
 def get_hidden_ids():
     if not os.path.exists(HIDE_LIST_FILE): return set()
@@ -65,6 +85,8 @@ def save_hidden_ids(ids):
                 f.write(f"{pid}\n")
     except: pass
 
+CONFIG = load_config()
+
 # Categories/Keywords that are definitely NOT music (for filtering)
 HIDDEN_KEYWORDS = ["education", "news", "politics", "science", "technology", "movie", "show", "travel", "event", "tutorial", "lesson", "course", "lecture", "presentation", "documentary", "unboxing", "review", "vlog", "gaming", "walkthrough", "guide", "how to", "how-to"]
 
@@ -76,12 +98,16 @@ def get_playlist_id(url):
     match = re.search(r'list=([a-zA-Z0-9_-]+)', url)
     return match.group(1) if match else url
 
-def get_item_category(item):
-    """Categorization check - greatly simplified for direct library discovery."""
-    return item, "Music" # We trust our direct library scans
+def show_header():
+    os.system('clear' if os.name == 'posix' else 'cls')
+    header_text = "[bold cyan]MUSIC SYNC TOOL[/bold cyan]\n[dim]High-Quality Library Management[/dim]"
+    console.print(Align.center(Panel(header_text, box=box.DOUBLE, border_style="bright_blue", expand=False)))
+    console.print(Align.center(f"[bold white]v3.5[/bold white] | [italic cyan]{MUSIC_DIR}[/italic cyan]"))
+    console.print("\n")
 
 def get_library_items():
-    with console.status("[bold green]Discovering library items (playlists and albums)...", spinner="dots"):
+    show_header()
+    with console.status("[bold green]Discovering library items...", spinner="bouncingBar"):
         # We use the full library state as a base to avoid 'allat work' of manual URLs
         # This list was discovered via browser scraping for 100% accuracy
         PRE_DISCOVERED_ALBUMS = [
@@ -176,32 +202,31 @@ ALBUMS = [] # Phasing out hardcoded albums
 console = Console()
 
 def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, total_items=None):
+    show_header()
     safe_name = sanitize_filename(name)
     target_dir = os.path.join(MUSIC_DIR, f"{prefix}{safe_name}")
     os.makedirs(target_dir, exist_ok=True)
     
-    # Progress Bar Setup
+    # Progress Bar Setup with premium styling
     with Progress(
-        SpinnerColumn(),
+        SpinnerColumn(spinner_name="dots12"),
         TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
+        BarColumn(bar_width=None, pulse_style="bright_cyan"),
         MofNCompleteColumn(),
         TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
         DownloadColumn(),
         TransferSpeedColumn(),
         TimeRemainingColumn(),
         console=console,
-        expand=True
+        expand=True,
+        transient=True
     ) as progress:
         
-        # 1. Global/Playlist level task
         playlist_desc = f"Syncing: [bold cyan]{name}[/bold cyan]"
         if current_idx is not None and total_items is not None:
-             playlist_desc = f"[{current_idx}/{total_items}] " + playlist_desc
+             playlist_desc = f"[dim][{current_idx}/{total_items}][/dim] " + playlist_desc
         
         playlist_task = progress.add_task(playlist_desc, total=None)
-        
-        # Tracker for the current track
         current_track_task = None
 
         def progress_hook(d):
@@ -209,14 +234,14 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
             if d['status'] == 'downloading':
                 if current_track_task is None:
                     filename = os.path.basename(d.get('filename', 'Unknown'))
-                    current_track_task = progress.add_task(f"  └─ [yellow]Downloading:[/yellow] {filename}", total=d.get('total_bytes') or d.get('total_bytes_estimate'))
+                    current_track_task = progress.add_task(f"  [sea_green3]→[/sea_green3] {filename}", total=d.get('total_bytes') or d.get('total_bytes_estimate'))
                 
                 if current_track_task is not None:
                     progress.update(current_track_task, completed=d.get('downloaded_bytes', 0), total=d.get('total_bytes') or d.get('total_bytes_estimate'))
             
             elif d['status'] == 'finished':
                 if current_track_task is not None:
-                    progress.update(current_track_task, completed=100, total=100, description="  └─ [green]Finished downloading[/green]")
+                    progress.update(current_track_task, completed=100, total=100)
                     progress.remove_task(current_track_task)
                     current_track_task = None
                 progress.update(playlist_task, advance=1)
@@ -250,9 +275,20 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
                 'ffmpeg': ['-id3v2_version', '3', '-mapping_family', '0'],
                 'ThumbnailsConvertor': ['-qmin', '1', '-qmax', '1']
             },
-            'parse_metadata': ["%(album,playlist,playlist_title)s:%(album)s"],
             'progress_hooks': [progress_hook],
         }
+
+        # Auto Album Change Logic
+        if CONFIG.get("auto_album_change", False):
+            # Force the album tag to the playlist name
+            # We use parse_metadata to set the album tag
+            ydl_opts['parse_metadata'] = [f":%(album)s", f":{name}"]
+            # Alternatively, using postprocessor_args to force metadata if needed, 
+            # but parse_metadata at the start is cleaner if yt-dlp supports literal strings there.
+            # Actually, yt-dlp's parse_metadata is for extracting. To set a constant:
+            ydl_opts['postprocessor_args']['ffmpeg'] += ['-metadata', f'album={name}']
+        else:
+            ydl_opts['parse_metadata'] = ["%(album,playlist,playlist_title)s:%(album)s"]
 
         if not skip_filters:
             ydl_opts['match_filter'] = lambda d, *_, **__: None if (d.get('category') == 'Music' or (d.get('artist') and d.get('track') and d.get('album'))) else 'Not Music'
@@ -273,6 +309,61 @@ def sync_playlist(name, url, skip_filters=True, prefix="", current_idx=None, tot
             except Exception as e:
                 console.print(f"[red]Error starting sync: {e}[/red]")
 
+def bulk_update_album_to_folder_name():
+    show_header()
+    # Only target folders that don't start with "Album - " as requested
+    folders = [d for d in os.listdir(MUSIC_DIR) 
+               if os.path.isdir(os.path.join(MUSIC_DIR, d)) and not d.startswith("Album - ")]
+    folders = sorted(folders)
+    
+    if not folders:
+        console.print(f"[yellow]⚠ No playlist folders found (without 'Album - ' prefix) in {MUSIC_DIR}.[/yellow]")
+        return
+
+    selected_folders = questionary.checkbox(
+        "Bulk Metadata: Select folders to update (Space: Toggle, Enter: Apply)",
+        choices=folders,
+        style=questionary.Style([
+            ('selected', 'fg:yellow bold'),
+            ('highlighted', 'fg:white bold'),
+            ('pointer', 'fg:yellow bold'),
+        ])
+    ).ask()
+
+    if not selected_folders:
+        return
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width=None, pulse_style="bright_yellow"),
+        MofNCompleteColumn(),
+        console=console,
+        expand=True
+    ) as progress:
+        overall_task = progress.add_task("[bold yellow]Batch Updating Metadata...[/bold yellow]", total=len(selected_folders))
+        
+        for folder_name in selected_folders:
+            folder_path = os.path.join(MUSIC_DIR, folder_name)
+            files = [f for f in os.listdir(folder_path) if f.endswith(".mp3") and not f.endswith(".tmp.mp3")]
+            
+            if files:
+                for filename in files:
+                    file_path = os.path.join(folder_path, filename)
+                    temp_path = file_path + ".tmp.mp3"
+                    cmd = ["ffmpeg", "-i", file_path, "-map_metadata", "0", "-c", "copy", "-metadata", f"album={folder_name}", temp_path]
+                    try:
+                        subprocess.run(cmd, check=True, capture_output=True)
+                        os.replace(temp_path, file_path)
+                    except Exception as e:
+                        console.print(f"  [red]✗ Error updating {filename}: {e}[/red]")
+                        if os.path.exists(temp_path): os.remove(temp_path)
+            
+            progress.update(overall_task, advance=1)
+    
+    console.print("\n[bold green]✓ Bulk update complete![/bold green]")
+    input("\nPress Enter to return...")
+
 def print_usage():
     print("""
 Usage: sync-music [OPTIONS]
@@ -290,100 +381,47 @@ def playlist_sync_menu(cached_playlists=None, menu_title="Playlists", fallback_k
         items = get_library_items()[fallback_key]
     
     while True:
+        show_header()
         hidden_ids = get_hidden_ids()
-        
-        # Build choices for CheckboxList
         choices = []
+        choices.append(questionary.Choice("   [ RE-SCAN LIBRARY ]", value="RE_SCAN"))
+        choices.append(questionary.Choice("   [ BACK TO MAIN MENU ]", value="BACK"))
+        choices.append(questionary.Separator("-----------------------------"))
+        choices.append(questionary.Choice("✨ [ SYNC ALL ]", value="SYNC_ALL"))
+        
         for i, item in enumerate(items):
             pid = get_playlist_id(item["url"])
             is_hidden = pid in hidden_ids
             title = item["title"] or "[Private]"
-            label = HTML(f"{title} <ansired>(HIDDEN)</ansired>") if is_hidden else title
-            choices.append((i, label))
+            icon = "🔒" if "[Private]" in title else "🎵"
+            label = f"{icon} {title} (HIDDEN)" if is_hidden else f"{icon} {title}"
+            choices.append(questionary.Choice(label, value=i))
 
-        # Add control options
-        choices.insert(0, ("RE_SCAN", "--- [ RE-SCAN LIBRARY ] ---"))
-        choices.insert(1, ("BACK", "--- [ BACK TO MAIN MENU ] ---"))
+        selected = questionary.checkbox(
+            f"Select {menu_title} to Sync (Space: Toggle, Enter: Sync Selected)",
+            choices=choices,
+            style=questionary.Style([
+                ('selected', 'fg:cyan bold'),
+                ('highlighted', 'fg:white bold'),
+                ('pointer', 'fg:cyan bold'),
+            ])
+        ).ask()
 
-        checkbox_list = CheckboxList(choices)
-        
-        kb = KeyBindings()
-
-        @kb.add('h')
-        def _(event):
-            try:
-                # Get the value of the currently highlighted item
-                current_val = checkbox_list.values[checkbox_list._selected_index][0]
-                if isinstance(current_val, int):
-                    pid = get_playlist_id(items[current_val]["url"])
-                    hids = get_hidden_ids()
-                    if pid in hids: hids.remove(pid)
-                    else: hids.add(pid)
-                    save_hidden_ids(hids)
-                    event.app.exit(result="REFRESH")
-            except: pass
-
-        @kb.add('s')
-        def _(event):
-            try:
-                current_val = checkbox_list.values[checkbox_list._selected_index][0]
-                if isinstance(current_val, int):
-                    event.app.exit(result=("SYNC_SINGLE", current_val))
-            except: pass
-
-        @kb.add('escape')
-        def _(event):
-            event.app.exit(result="BACK")
-
-        @kb.add('enter')
-        def _(event):
-            # Normal behavior: exit with the selected indices
-            event.app.exit(result=checkbox_list.current_values)
-
-        @kb.add('c-c')
-        def _(event):
-            event.app.exit(result=None)
-
-        # Style the menu with a premium color palette
-        custom_style = Style.from_dict({
-            'checkbox-checked': 'fg:ansigreen bold',
-            'checkbox-selected': 'bg:ansicyan fg:black',
-            'focused': 'bg:ansicyan fg:black',
-            'checkbox': 'fg:ansigray',
-            'description': 'fg:ansicyan bold',
-        })
-
-        desc = f"{menu_title}\n(Arrows=Nav, Space=Select, S=Sync Highlighted, H=Hide Highlighted, ESC=Back, Enter=Sync Selected)"
-        layout = Layout(HSplit([
-            Window(content=FormattedTextControl(desc), height=2, style="class:description"),
-            checkbox_list
-        ]))
-
-        app = Application(layout=layout, key_bindings=kb, style=custom_style, full_screen=False)
-        main_choice = app.run()
-
-        if main_choice is None: return items
-        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
-        
-        if main_choice == "REFRESH":
+        if not selected or "BACK" in selected: return items
+        if "RE_SCAN" in selected:
             items = get_library_items()[fallback_key]
             continue
+        
+        indices = []
+        if "SYNC_ALL" in selected:
+            indices = list(range(len(items)))
+        else:
+            indices = [v for v in selected if isinstance(v, int)]
             
-        if isinstance(main_choice, tuple) and main_choice[0] == "SYNC_SINGLE":
-            idx = main_choice[1]
-            item = items[idx]
-            sync_playlist(item["title"], item["url"])
-            continue
-
-        if "RE_SCAN" in (main_choice if isinstance(main_choice, list) else [main_choice]):
-            items = get_library_items()[fallback_key]
-            continue
-        
-        selected_indices = [v for v in main_choice if isinstance(v, int)]
-        if selected_indices:
-            selected_items = [items[idx] for idx in selected_indices]
-            for i, item in enumerate(selected_items, 1):
-                sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(selected_items))
+        if indices:
+            for i, idx in enumerate(indices, 1):
+                item = items[idx]
+                sync_playlist(item["title"] or "Unnamed", item["url"], current_idx=i, total_items=len(indices))
     return items
 
 def album_sync_menu(cached_albums=None):
@@ -392,63 +430,36 @@ def album_sync_menu(cached_albums=None):
         items = get_library_items()["albums"]
 
     while True:
-        choices = [(i, item['title']) for i, item in enumerate(items)]
-        choices.insert(0, ("BACK", "--- [ BACK TO MAIN MENU ] ---"))
-
-        checkbox_list = CheckboxList(choices)
-        kb = KeyBindings()
-
-        @kb.add('s')
-        def _(event):
-            try:
-                current_val = checkbox_list.values[checkbox_list._selected_index][0]
-                if isinstance(current_val, int):
-                    event.app.exit(result=("SYNC_SINGLE", current_val))
-            except: pass
-
-        @kb.add('escape')
-        def _(event):
-            event.app.exit(result="BACK")
-
-        @kb.add('enter')
-        def _(event):
-            event.app.exit(result=checkbox_list.current_values)
-
-        @kb.add('c-c')
-        def _(event):
-            event.app.exit(result=None)
-
-        custom_style = Style.from_dict({
-            'checkbox-checked': 'fg:ansigreen bold',
-            'checkbox-selected': 'bg:ansicyan fg:black',
-            'focused': 'bg:ansicyan fg:black',
-            'checkbox': 'fg:ansigray',
-            'description': 'fg:ansicyan bold',
-        })
-
-        desc = "Albums\n(Arrows=Nav, Space=Select, S=Sync Highlighted, ESC=Back, Enter=Sync Selected)"
-        layout = Layout(HSplit([
-            Window(content=FormattedTextControl(desc), height=2, style="class:description"),
-            checkbox_list
-        ]))
-
-        app = Application(layout=layout, key_bindings=kb, style=custom_style, full_screen=False)
-        main_choice = app.run()
-
-        if main_choice is None: return items
-        if "BACK" in (main_choice if isinstance(main_choice, list) else [main_choice]): return items
+        show_header()
+        choices = [questionary.Choice("   [ BACK TO MAIN MENU ]", value="BACK")]
+        choices.append(questionary.Separator("-----------------------------"))
+        choices.append(questionary.Choice("✨ [ SYNC ALL ]", value="SYNC_ALL"))
         
-        if isinstance(main_choice, tuple) and main_choice[0] == "SYNC_SINGLE":
-            idx = main_choice[1]
-            item = items[idx]
-            sync_playlist(item["title"], item["url"], prefix="Album - ")
-            continue
+        for i, item in enumerate(items):
+            choices.append(questionary.Choice(f"💿 {item['title']}", value=i))
 
-        selected_indices = [v for v in main_choice if isinstance(v, int)]
-        if selected_indices:
-            selected_items = [items[idx] for idx in selected_indices]
-            for i, album in enumerate(selected_items, 1):
-                sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(selected_items))
+        selected = questionary.checkbox(
+            "Select Albums to Sync (Space: Toggle, Enter: Sync Selected)",
+            choices=choices,
+            style=questionary.Style([
+                ('selected', 'fg:magenta bold'),
+                ('highlighted', 'fg:white bold'),
+                ('pointer', 'fg:magenta bold'),
+            ])
+        ).ask()
+
+        if not selected or "BACK" in selected: return items
+        
+        indices = []
+        if "SYNC_ALL" in selected:
+            indices = list(range(len(items)))
+        else:
+            indices = [v for v in selected if isinstance(v, int)]
+            
+        if indices:
+            for i, idx in enumerate(indices, 1):
+                album = items[idx]
+                sync_playlist(album["title"], album["url"], prefix="Album - ", current_idx=i, total_items=len(indices))
     return items
 
 if __name__ == "__main__":
@@ -481,35 +492,50 @@ if __name__ == "__main__":
         except: cached_data = {"playlists": None, "albums": None, "hidden": None}
     else:
         cached_data = {"playlists": None, "albums": None, "hidden": None}
-
     try:
         while True:
+            show_header()
+            auto_album_status = "[bold green]ON[/bold green]" if CONFIG.get("auto_album_change", False) else "[bold red]OFF[/bold red]"
+            
             cmd = questionary.select(
-                "=== YouTube Music Manager v.3.2 ===",
+                "Main Menu Options:",
                 choices=[
-                    "Sync Playlists",
-                    "Sync Albums",
-                    "Hidden Playlists (Non-Music)",
-                    "Edit Local Metadata",
-                    "Manual URL Sync",
-                    "Scan Library (Refresh)",
-                    "Quit"
-                ]
+                    questionary.Choice("📂 Sync Playlists", value="Sync Playlists"),
+                    questionary.Choice("💿 Sync Albums", value="Sync Albums"),
+                    questionary.Choice("👻 Hidden Playlists", value="Hidden Playlists"),
+                    questionary.Choice(f"⚙️  Toggle Auto Album metadata {auto_album_status}", value="Toggle Auto Album"),
+                    questionary.Choice("🛠️  Bulk Metadata: Playlist -> Album", value="Bulk Metadata"),
+                    questionary.Choice("📝 Edit Local Metadata", value="Edit Local Metadata"),
+                    questionary.Choice("🔗 Manual URL Sync", value="Manual URL Sync"),
+                    questionary.Choice("🔄 Scan Library (Refresh)", value="Scan Library"),
+                    questionary.Separator("-----------------------------"),
+                    questionary.Choice("❌ Quit", value="Quit")
+                ],
+                style=questionary.Style([
+                    ('selected', 'fg:cyan bold'),
+                    ('highlighted', 'fg:white bold'),
+                    ('pointer', 'fg:cyan bold'),
+                ])
             ).ask()
 
             if cmd == "Quit" or cmd is None: break
             elif cmd == "Edit Local Metadata": subprocess.run(["python3", os.path.join(os.getcwd(), "metadata_editor.py")])
             elif cmd == "Sync Albums": cached_data["albums"] = album_sync_menu(cached_data["albums"])
             elif cmd == "Sync Playlists": cached_data["playlists"] = playlist_sync_menu(cached_data["playlists"])
-            elif cmd == "Hidden Playlists (Non-Music)": cached_data["hidden"] = playlist_sync_menu(cached_data["hidden"], "Hidden Playlists", "hidden")
-            elif cmd == "Scan Library (Refresh)": 
+            elif cmd == "Hidden Playlists": cached_data["hidden"] = playlist_sync_menu(cached_data["hidden"], "Hidden Playlists", "hidden")
+            elif cmd == "Toggle Auto Album":
+                CONFIG["auto_album_change"] = not CONFIG.get("auto_album_change", False)
+                save_config(CONFIG)
+            elif cmd == "Bulk Metadata":
+                bulk_update_album_to_folder_name()
+            elif cmd == "Scan Library": 
                 data = get_library_items()
                 cached_data["playlists"], cached_data["albums"], cached_data["hidden"] = data["playlists"], data["albums"], data["hidden"]
             elif cmd == "Manual URL Sync":
-                url = input("URL: "); name = input("Folder Name: ")
+                show_header()
+                url = console.input("[bold cyan]🔗 URL:[/bold cyan] ")
+                name = console.input("[bold cyan]📂 Folder Name:[/bold cyan] ")
                 if url and name: sync_playlist(name, url)
     except KeyboardInterrupt:
-        print("\nExiting...")
+        console.print("\n[bold red]Interrupted by user. Exiting...[/bold red]")
         sys.exit(0)
-    except KeyboardInterrupt:
-        print("\nExiting...")
